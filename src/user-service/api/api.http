@@ -1,0 +1,50 @@
+### Get My Profile
+GET http://localhost:5002/users/me
+Authorization: Bearer {{token}}
+
+###
+
+### Update My Profile
+PUT http://localhost:5002/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "displayName": "Updated Name",
+  "bio": "This is my updated bio",
+  "avatarUrl": "https://example.com/avatar.jpg"
+}
+
+###
+
+### Get User Profile by ID
+GET http://localhost:5002/users/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{token}}
+
+###
+
+### Search Users
+GET http://localhost:5002/users/search?q=admin
+Authorization: Bearer {{token}}
+
+###
+
+### Search Users with Pagination
+GET http://localhost:5002/users/search?q=user&skip=0&take=10
+Authorization: Bearer {{token}}
+
+###
+
+### Create User Profile (Internal)
+POST http://localhost:5002/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userId": "00000000-0000-0000-0000-000000000004",
+  "email": "newuser@example.com",
+  "displayName": "New User",
+  "bio": "A new user profile"
+}
+
+###
