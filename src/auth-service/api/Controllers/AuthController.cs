@@ -11,7 +11,7 @@ using System.Security.Claims;
 namespace AuthApi.Controllers;
 
 [ApiController]
-[Route("auth")]
+[Route("api/auth")]
 public class AuthController : ControllerBase
 {
     private readonly AuthDbContext _dbContext;

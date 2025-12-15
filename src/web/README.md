@@ -1,16 +1,51 @@
-# Web
+# Web - Todo Application Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.3.
+Angular-based frontend for the collaborative todo list application.
+
+## Features
+
+- **Authentication**: User registration, login, and device-based logout
+- **Todo Management**: Create, read, update, and delete todo lists and items
+- **Sharing**: Invite users to collaborate on lists (owner/viewer roles)
+- **Real-time Updates**: SignalR integration for live synchronization across devices
+- **Responsive UI**: Modern design with Tailwind CSS
+
+## Architecture
+
+Built following Angular best practices:
+- Standalone components (Angular v21+)
+- Signals for state management
+- `inject()` function for dependency injection
+- Lazy-loaded routes
+- HTTP interceptors for authentication
 
 ## Development server
 
 To start a local development server, run:
 
 ```bash
-ng serve
+npm start
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+
+## Prerequisites
+
+The following backend services must be running:
+- BFF Service: http://localhost:5000
+- Auth Service: http://localhost:5001
+- User Service: http://localhost:5002
+- Todo Service: http://localhost:5003
+- Realtime Service (SignalR): http://localhost:5004
+
+## Configuration
+
+API endpoints are configured in the service files:
+- `src/app/services/auth.service.ts`
+- `src/app/services/list.service.ts`
+- `src/app/services/todo.service.ts`
+- `src/app/services/user.service.ts`
+- `src/app/services/realtime.service.ts`
 
 ## Code scaffolding
 
