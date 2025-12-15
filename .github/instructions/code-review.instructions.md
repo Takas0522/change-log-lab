@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.cs,**/*.ts,**/*.html,**/*.scss,**/*.sql"
+applyTo: "src/**"
 excludeAgent: "coding-agent"
 ---
 
@@ -97,4 +97,4 @@ excludeAgent: "coding-agent"
 ## レビューフィードバックの書き方（推奨）
 - 重大度ラベル（Critical/Major/Minor）と**再現手順**/**修正案**をセットで提示する。
 - 1 PR あたりの指摘は **実行可能な単位**にまとめ、過剰な細分化を避ける。
-``
+- 日本語で記載
