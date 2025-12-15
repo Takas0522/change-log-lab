@@ -1,0 +1,37 @@
+@api_HostAddress = http://localhost:5240
+@token = 
+
+### Register a new user
+POST {{api_HostAddress}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123",
+  "displayName": "Test User"
+}
+
+### Login
+POST {{api_HostAddress}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123",
+  "deviceId": "web-browser-device-123"
+}
+
+### Get current user info (requires auth token)
+GET {{api_HostAddress}}/auth/me
+Authorization: Bearer {{token}}
+
+### Logout
+POST {{api_HostAddress}}/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "deviceId": "web-browser-device-123"
+}
+
+###
