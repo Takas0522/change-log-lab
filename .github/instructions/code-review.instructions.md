@@ -1,6 +1,5 @@
 ---
 applyTo: "src/**"
-excludeAgent: "coding-agent"
 ---
 
 # Copilot Code Review チェックリスト（C# / Angular / SQL）
