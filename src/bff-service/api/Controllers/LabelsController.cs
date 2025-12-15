@@ -5,52 +5,47 @@ using System.Text.Json;
 namespace BffApi.Controllers;
 
 [ApiController]
-[Route("api/lists/{listId}/todos")]
+[Route("api/[controller]")]
 [Authorize]
-public class TodosController : ControllerBase
+public class LabelsController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger<TodosController> _logger;
+    private readonly ILogger<LabelsController> _logger;
 
-    public TodosController(IHttpClientFactory httpClientFactory, ILogger<TodosController> logger)
+    public LabelsController(IHttpClientFactory httpClientFactory, ILogger<LabelsController> logger)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetTodos(Guid listId, [FromQuery] string? labelIds = null)
+    public async Task<IActionResult> GetLabels()
     {
-        var path = $"/api/lists/{listId}/todos";
-        if (!string.IsNullOrWhiteSpace(labelIds))
-        {
-            path += $"?labelIds={Uri.EscapeDataString(labelIds)}";
-        }
-        return await ProxyRequest("TodoService", path, HttpMethod.Get);
+        return await ProxyRequest("TodoService", "/api/labels", HttpMethod.Get);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetTodo(Guid listId, Guid id)
+    public async Task<IActionResult> GetLabel(Guid id)
     {
-        return await ProxyRequest("TodoService", $"/api/lists/{listId}/todos/{id}", HttpMethod.Get);
+        return await ProxyRequest("TodoService", $"/api/labels/{id}", HttpMethod.Get);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateTodo(Guid listId, [FromBody] JsonElement requestBody)
+    public async Task<IActionResult> CreateLabel([FromBody] JsonElement requestBody)
     {
-        return await ProxyRequest("TodoService", $"/api/lists/{listId}/todos", HttpMethod.Post, requestBody);
+        return await ProxyRequest("TodoService", "/api/labels", HttpMethod.Post, requestBody);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateTodo(Guid listId, Guid id, [FromBody] JsonElement requestBody)
+    public async Task<IActionResult> UpdateLabel(Guid id, [FromBody] JsonElement requestBody)
     {
-        return await ProxyRequest("TodoService", $"/api/lists/{listId}/todos/{id}", HttpMethod.Put, requestBody);
+        return await ProxyRequest("TodoService", $"/api/labels/{id}", HttpMethod.Put, requestBody);
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteTodo(Guid listId, Guid id)
+    public async Task<IActionResult> DeleteLabel(Guid id)
     {
-        return await ProxyRequest("TodoService", $"/api/lists/{listId}/todos/{id}", HttpMethod.Delete);
+        return await ProxyRequest("TodoService", $"/api/labels/{id}", HttpMethod.Delete);
     }
 
     private async Task<IActionResult> ProxyRequest(string serviceName, string path, HttpMethod method, JsonElement? body = null)

@@ -37,7 +37,8 @@ public record CreateTodoRequest(
     string Title,
     string? Description,
     DateTime? DueDate,
-    int? Position
+    int? Position,
+    List<Guid>? LabelIds  // Labels to assign to the todo (max 10)
 );
 
 public record UpdateTodoRequest(
@@ -45,7 +46,8 @@ public record UpdateTodoRequest(
     string? Description,
     bool? IsCompleted,
     DateTime? DueDate,
-    int? Position
+    int? Position,
+    List<Guid>? LabelIds  // Labels to assign to the todo (max 10)
 );
 
 public record TodoResponse(
@@ -57,7 +59,8 @@ public record TodoResponse(
     DateTime? DueDate,
     int Position,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    List<LabelResponse> Labels
 );
 
 // List Member DTOs

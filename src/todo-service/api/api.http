@@ -122,4 +122,101 @@ Authorization: Bearer {{token}}
 DELETE {{baseUrl}}/api/lists/{{listId}}
 Authorization: Bearer {{token}}
 
+### =========================
+### Label API Tests
+### =========================
+
+### Get all labels
+GET {{baseUrl}}/api/labels
+Authorization: Bearer {{token}}
+
+### Create a label
+POST {{baseUrl}}/api/labels
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Urgent",
+  "color": "#FF0000"
+}
+
+### Create another label
+POST {{baseUrl}}/api/labels
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Work",
+  "color": "#0066CC"
+}
+
+### Create third label
+POST {{baseUrl}}/api/labels
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Personal",
+  "color": "#00CC66"
+}
+
+### Get specific label (replace with actual ID)
+@labelId = 00000000-0000-0000-0000-000000000000
+GET {{baseUrl}}/api/labels/{{labelId}}
+Authorization: Bearer {{token}}
+
+### Update label
+PUT {{baseUrl}}/api/labels/{{labelId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Very Urgent",
+  "color": "#CC0000"
+}
+
+### Update label color only
+PUT {{baseUrl}}/api/labels/{{labelId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "color": "#FF6600"
+}
+
+### Create todo with labels
+@labelId2 = 00000000-0000-0000-0000-000000000000
+POST {{baseUrl}}/api/lists/{{listId}}/todos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Prepare presentation",
+  "description": "Create slides for Monday meeting",
+  "dueDate": "2025-12-19T09:00:00Z",
+  "position": 2,
+  "labelIds": ["{{labelId}}", "{{labelId2}}"]
+}
+
+### Update todo with different labels
+PUT {{baseUrl}}/api/lists/{{listId}}/todos/{{todoId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "labelIds": ["{{labelId}}"]
+}
+
+### Get todos filtered by label
+GET {{baseUrl}}/api/lists/{{listId}}/todos?labelIds={{labelId}}
+Authorization: Bearer {{token}}
+
+### Get todos filtered by multiple labels
+GET {{baseUrl}}/api/lists/{{listId}}/todos?labelIds={{labelId}},{{labelId2}}
+Authorization: Bearer {{token}}
+
+### Delete label (will remove from all todos)
+DELETE {{baseUrl}}/api/labels/{{labelId}}
+Authorization: Bearer {{token}}
+
 ###
