@@ -24,3 +24,5 @@
 ## 受け入れ条件（Acceptance Criteria）
 - 上記シナリオがローカルで完走できる
 - 失敗時に確認するログ/観測ポイント（event_id, request-id 等）が文書化されている
+
+aaa
