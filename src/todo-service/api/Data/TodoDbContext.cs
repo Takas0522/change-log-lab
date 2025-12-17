@@ -99,9 +99,9 @@ public class TodoDbContext : DbContext
             entity.HasIndex(e => e.ListId).HasDatabaseName("idx_list_invites_list");
             entity.HasIndex(e => e.InviteeUserId).HasDatabaseName("idx_list_invites_invitee");
             entity.HasIndex(e => e.Status).HasDatabaseName("idx_list_invites_status");
-            entity.HasIndex(e => new { e.ListId, e.InviteeUserId })
-                .HasDatabaseName("idx_list_invites_list_invitee")
-                .IsUnique();
+            entity.HasIndex(e => new { e.ListId, e.InviteeUserId, e.Status })
+                .HasDatabaseName("idx_list_invites_list_invitee_status");
+            // Note: Partial unique index (WHERE status = 'pending') is defined in schema.sql
 
             // Configure relationship
             entity.HasOne(e => e.List)
