@@ -320,4 +320,51 @@ public class ListsController : ControllerBase
 
         return NoContent();
     }
+
+    // DELETE: api/lists/{id}/access/{targetUserId}
+    [HttpDelete("{id}/access/{targetUserId}")]
+    public async Task<IActionResult> RemoveAccess(Guid id, Guid targetUserId)
+    {
+        var userId = GetUserId();
+
+        var list = await _context.Lists
+            .Include(l => l.Members)
+            .FirstOrDefaultAsync(l => l.Id == id);
+
+        if (list == null)
+        {
+            return NotFound(new { message = "List not found" });
+        }
+
+        // Check if user has permission (owner or editor)
+        var isOwner = list.OwnerId == userId;
+        var member = list.Members.FirstOrDefault(m => m.UserId == userId);
+        var userRole = isOwner ? "owner" : member?.Role ?? null;
+
+        if (userRole == null || userRole == "viewer")
+        {
+            return Forbid();
+        }
+
+        // Find member by user ID
+        var targetMember = list.Members.FirstOrDefault(m => m.UserId == targetUserId);
+
+        if (targetMember == null)
+        {
+            return NotFound(new { message = "User does not have access to this list" });
+        }
+
+        // Only owner can remove other owners or editors
+        if ((targetMember.Role == "owner" || targetMember.Role == "editor") && !isOwner)
+        {
+            return Forbid();
+        }
+
+        _context.ListMembers.Remove(targetMember);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Access removed from list {ListId}: User {UserId}", id, targetUserId);
+
+        return NoContent();
+    }
 }
