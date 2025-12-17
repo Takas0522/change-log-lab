@@ -12,6 +12,7 @@ public class TodoDbContext : DbContext
     public DbSet<List> Lists { get; set; } = null!;
     public DbSet<Todo> Todos { get; set; } = null!;
     public DbSet<ListMember> ListMembers { get; set; } = null!;
+    public DbSet<ListInvite> ListInvites { get; set; } = null!;
     public DbSet<OutboxEvent> OutboxEvents { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -82,6 +83,33 @@ public class TodoDbContext : DbContext
                 .IsUnique();
         });
 
+        // Configure ListInvite entity
+        modelBuilder.Entity<ListInvite>(entity =>
+        {
+            entity.ToTable("list_invites");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ListId).HasColumnName("list_id").IsRequired();
+            entity.Property(e => e.InviterUserId).HasColumnName("inviter_user_id").IsRequired();
+            entity.Property(e => e.InviteeUserId).HasColumnName("invitee_user_id").IsRequired();
+            entity.Property(e => e.Status).HasColumnName("status").IsRequired().HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
+            entity.HasIndex(e => e.ListId).HasDatabaseName("idx_list_invites_list");
+            entity.HasIndex(e => e.InviteeUserId).HasDatabaseName("idx_list_invites_invitee");
+            entity.HasIndex(e => e.Status).HasDatabaseName("idx_list_invites_status");
+            entity.HasIndex(e => new { e.ListId, e.InviteeUserId })
+                .HasDatabaseName("idx_list_invites_list_invitee")
+                .IsUnique();
+
+            // Configure relationship
+            entity.HasOne(e => e.List)
+                .WithMany()
+                .HasForeignKey(e => e.ListId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         // Configure OutboxEvent entity
         modelBuilder.Entity<OutboxEvent>(entity =>
         {
@@ -115,7 +143,7 @@ public class TodoDbContext : DbContext
     private void UpdateTimestamps()
     {
         var entries = ChangeTracker.Entries()
-            .Where(e => e.Entity is List || e.Entity is Todo || e.Entity is ListMember);
+            .Where(e => e.Entity is List || e.Entity is Todo || e.Entity is ListMember || e.Entity is ListInvite);
 
         foreach (var entry in entries)
         {
@@ -138,6 +166,11 @@ public class TodoDbContext : DbContext
                     member.CreatedAt = now;
                     member.UpdatedAt = now;
                 }
+                else if (entry.Entity is ListInvite invite)
+                {
+                    invite.CreatedAt = now;
+                    invite.UpdatedAt = now;
+                }
             }
             else if (entry.State == EntityState.Modified)
             {
@@ -152,6 +185,10 @@ public class TodoDbContext : DbContext
                 else if (entry.Entity is ListMember member)
                 {
                     member.UpdatedAt = now;
+                }
+                else if (entry.Entity is ListInvite invite)
+                {
+                    invite.UpdatedAt = now;
                 }
             }
         }
