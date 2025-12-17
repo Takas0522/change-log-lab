@@ -59,6 +59,30 @@ CREATE INDEX IF NOT EXISTS idx_outbox_events_event_id ON outbox_events(event_id)
 CREATE INDEX IF NOT EXISTS idx_outbox_events_unprocessed ON outbox_events(processed_at) WHERE processed_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_outbox_events_created ON outbox_events(created_at);
 
+-- Labels table for user-specific labels
+CREATE TABLE IF NOT EXISTS labels (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,  -- Reference to User Service user
+    name VARCHAR(100) NOT NULL,
+    color VARCHAR(7) NOT NULL,  -- HEX format (#RRGGBB)
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_labels_user ON labels(user_id);
+
+-- Todo-Label relationship table (many-to-many)
+CREATE TABLE IF NOT EXISTS todo_labels (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    todo_id UUID NOT NULL REFERENCES todos(id) ON DELETE CASCADE,
+    label_id UUID NOT NULL REFERENCES labels(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    UNIQUE(todo_id, label_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_todo_labels_todo ON todo_labels(todo_id);
+CREATE INDEX IF NOT EXISTS idx_todo_labels_label ON todo_labels(label_id);
+
 -- Function to notify on outbox insert
 CREATE OR REPLACE FUNCTION notify_outbox_event() RETURNS TRIGGER AS $$
 BEGIN

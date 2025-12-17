@@ -42,6 +42,7 @@ export interface TodoModel {
   position: number;
   createdAt: string;
   updatedAt: string;
+  labels?: LabelModel[];
 }
 
 export interface CreateListRequest {
@@ -59,12 +60,14 @@ export interface CreateTodoRequest {
   description?: string;
   dueDate?: string;
   position?: number;
+  labelIds?: string[];
 }
 
 export interface UpdateTodoRequest {
   title?: string;
   description?: string;
   isCompleted?: boolean;
+  labelIds?: string[];
 }
 
 export interface InviteRequest {
@@ -76,4 +79,23 @@ export interface UserProfile {
   email: string;
   displayName: string;
   createdAt: string;
+}
+
+export interface LabelModel {
+  id: string;  // UUID
+  userId: string;  // UUID
+  name: string;
+  color: string;  // HEX format (#RRGGBB)
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateLabelRequest {
+  name: string;
+  color: string;  // HEX format (#RRGGBB)
+}
+
+export interface UpdateLabelRequest {
+  name?: string;
+  color?: string;  // HEX format (#RRGGBB)
 }

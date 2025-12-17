@@ -14,4 +14,5 @@ public class Todo
 
     // Navigation properties
     public List List { get; set; } = null!;
+    public ICollection<TodoLabel> TodoLabels { get; set; } = new List<TodoLabel>();
 }
