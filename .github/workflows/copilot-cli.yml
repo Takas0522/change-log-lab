@@ -139,54 +139,54 @@ jobs:
             printf '%s\n' "$COPILOT_RESULT"
             echo "EOF"
           } >> $GITHUB_OUTPUT
+      ## gh実行も込みでお願いしたら不要だわ
+      # - name: Post Comment to Issue
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     REPO_OWNER: ${{ github.repository_owner }}
+      #     REPO_NAME: ${{ github.event.repository.name }}
+      #   run: |
+      #     ISSUE_NUMBER="${{ steps.issue-content.outputs.issue-number }}"
+          
+      #     # Create a safe temporary file for the result
+      #     TEMP_RESULT=$(mktemp)
+          
+      #     # Write the copilot result to temporary file to avoid shell interpretation
+      #     cat << 'RESULT_EOF' > "$TEMP_RESULT"
+      #     ${{ steps.copilot-analysis.outputs.result }}
+      #     RESULT_EOF
+          
+      #     # Create comment body with template
+      #     TEMP_COMMENT=$(mktemp)
+      #     cat << 'COMMENT_EOF' > "$TEMP_COMMENT"
+      #     ## 🤖 Copilot CLI による分析結果
 
-      - name: Post Comment to Issue
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.event.repository.name }}
-        run: |
-          ISSUE_NUMBER="${{ steps.issue-content.outputs.issue-number }}"
+      #     COMMENT_EOF
           
-          # Create a safe temporary file for the result
-          TEMP_RESULT=$(mktemp)
+      #     # Append the result content
+      #     cat "$TEMP_RESULT" >> "$TEMP_COMMENT"
           
-          # Write the copilot result to temporary file to avoid shell interpretation
-          cat << 'RESULT_EOF' > "$TEMP_RESULT"
-          ${{ steps.copilot-analysis.outputs.result }}
-          RESULT_EOF
-          
-          # Create comment body with template
-          TEMP_COMMENT=$(mktemp)
-          cat << 'COMMENT_EOF' > "$TEMP_COMMENT"
-          ## 🤖 Copilot CLI による分析結果
+      #     # Append the footer
+      #     cat << 'FOOTER_EOF' >> "$TEMP_COMMENT"
 
-          COMMENT_EOF
+      #     ---
+      #     *この回答は GitHub Copilot CLI により自動生成されました。添付ファイルの URL がある場合は、Copilot CLI が自動的にアクセスして分析に含めます。*
+      #     FOOTER_EOF
           
-          # Append the result content
-          cat "$TEMP_RESULT" >> "$TEMP_COMMENT"
+      #     # Escape for JSON using jq
+      #     ESCAPED_COMMENT=$(jq -Rs . < "$TEMP_COMMENT")
           
-          # Append the footer
-          cat << 'FOOTER_EOF' >> "$TEMP_COMMENT"
-
-          ---
-          *この回答は GitHub Copilot CLI により自動生成されました。添付ファイルの URL がある場合は、Copilot CLI が自動的にアクセスして分析に含めます。*
-          FOOTER_EOF
+      #     # Clean up temporary files
+      #     rm -f "$TEMP_RESULT" "$TEMP_COMMENT"
           
-          # Escape for JSON using jq
-          ESCAPED_COMMENT=$(jq -Rs . < "$TEMP_COMMENT")
-          
-          # Clean up temporary files
-          rm -f "$TEMP_RESULT" "$TEMP_COMMENT"
-          
-          # Post comment using GitHub REST API
-          curl -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Content-Type: application/json" \
-            "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues/${ISSUE_NUMBER}/comments" \
-            -d "{\"body\": ${ESCAPED_COMMENT}}"
+      #     # Post comment using GitHub REST API
+      #     curl -X POST \
+      #       -H "Authorization: token $GITHUB_TOKEN" \
+      #       -H "Accept: application/vnd.github.v3+json" \
+      #       -H "Content-Type: application/json" \
+      #       "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues/${ISSUE_NUMBER}/comments" \
+      #       -d "{\"body\": ${ESCAPED_COMMENT}}"
 
   copilot-cli-test:
     if: github.event_name == 'workflow_dispatch'
