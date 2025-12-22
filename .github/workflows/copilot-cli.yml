@@ -1,21 +1,104 @@
-name: GitHub Copilot CLI Test
+name: Issue Answer
 
 on:
   workflow_dispatch:
+  issues:
+    types: [opened]
 
 jobs:
-  copilot-cli-test:
+  issue-analysis:
+    if: github.event_name == 'issues'
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      # - name: Setup Node.js
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: '20'
-      #     cache: 'npm'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
+
+      - name: Install GitHub Copilot CLI
+        run: |
+          curl -fsSL https://gh.io/copilot-install | bash
+          sudo rm -f /usr/bin/gh
+
+      - name: Get Issue Content
+        id: issue-content
+        run: |
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          
+          echo "issue-title=${ISSUE_TITLE}" >> $GITHUB_OUTPUT
+          echo "issue-body=${ISSUE_BODY}" >> $GITHUB_OUTPUT
+          echo "issue-number=${ISSUE_NUMBER}" >> $GITHUB_OUTPUT
+          
+          # Create prompt for Copilot CLI
+          PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。
+
+          タイトル: ${ISSUE_TITLE}
+          
+          内容: ${ISSUE_BODY}"
+          
+          echo "copilot-prompt=${PROMPT}" >> $GITHUB_OUTPUT
+
+      - name: Run Copilot CLI Analysis
+        id: copilot-analysis
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PROMPT="${{ steps.issue-content.outputs.copilot-prompt }}"
+          
+          echo "Running Copilot CLI analysis..."
+          COPILOT_RESULT=$(copilot -p "$PROMPT" --allow-all-tools 2>&1 || echo "Error occurred during analysis")
+          
+          # Escape newlines for GitHub output
+          ESCAPED_RESULT=$(echo "$COPILOT_RESULT" | jq -Rs .)
+          echo "result=${ESCAPED_RESULT}" >> $GITHUB_OUTPUT
+
+      - name: Post Comment to Issue
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          ISSUE_NUMBER="${{ steps.issue-content.outputs.issue-number }}"
+          COPILOT_RESULT=$(echo '${{ steps.copilot-analysis.outputs.result }}' | jq -r .)
+          
+          # Create comment body
+          COMMENT_BODY="## 🤖 Copilot CLI による分析結果
+
+          ${COPILOT_RESULT}
+
+          ---
+          *この回答は GitHub Copilot CLI により自動生成されました。*"
+          
+          # Escape JSON for API call
+          ESCAPED_COMMENT=$(echo "$COMMENT_BODY" | jq -Rs .)
+          
+          # Post comment using GitHub REST API
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/json" \
+            "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues/${ISSUE_NUMBER}/comments" \
+            -d "{\"body\": ${ESCAPED_COMMENT}}"
+
+  copilot-cli-test:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
       
       - name: Install GitHub Copilot CLI
         env:
