@@ -69,6 +69,8 @@ jobs:
               echo ""
               echo "内容: ${PROCESSED_BODY}"
               echo ""
+              echo "ISSUE番号: ${ISSUE_NUMBER}"
+              echo ""
               echo "添付ファイル:"
               echo "${ATTACHMENT_URLS}"
               echo ""
@@ -81,6 +83,8 @@ jobs:
               echo "以下のIssueについて分析し、解決策や回答を提供してください。"
               echo ""
               echo "タイトル: ${ISSUE_TITLE}"
+              echo ""
+              echo "ISSUE番号: ${ISSUE_NUMBER}"
               echo ""
               echo "内容: ${PROCESSED_BODY}"
               echo "EOF"
@@ -108,7 +112,7 @@ jobs:
           # Use a temporary file to capture output safely
           TEMP_OUTPUT=$(mktemp)
           
-          if timeout 600 copilot --agent=sql-performance-review -p "$PROMPT" --allow-all-tools > "$TEMP_OUTPUT" 2>&1; then
+          if timeout 600 copilot --agent=sql-performance-review-actions -p "$PROMPT" --allow-all-tools > "$TEMP_OUTPUT" 2>&1; then
             COPILOT_RESULT=$(cat "$TEMP_OUTPUT")
             echo "Copilot CLI executed successfully"
             echo "Result length: ${#COPILOT_RESULT} characters"
