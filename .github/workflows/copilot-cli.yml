@@ -101,7 +101,7 @@ jobs:
           COPILOT_RESULT=""
           echo "Executing: copilot with the prepared prompt"
           
-          if COPILOT_RESULT=$(timeout 300 copilot -p "$PROMPT" --allow-all-tools 2>&1); then
+          if COPILOT_RESULT=$(timeout 600 copilot --agent=sql-performance-review -p "$PROMPT" --allow-all-tools 2>&1); then
             echo "Copilot CLI executed successfully"
             echo "Result length: ${#COPILOT_RESULT} characters"
           else
