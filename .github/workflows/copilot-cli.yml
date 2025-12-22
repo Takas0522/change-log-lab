@@ -101,20 +101,28 @@ jobs:
           COPILOT_RESULT=""
           echo "Executing: copilot with the prepared prompt"
           
-          if COPILOT_RESULT=$(timeout 600 copilot --agent=sql-performance-review -p "$PROMPT" --allow-all-tools 2>&1); then
+          # Use a temporary file to capture output safely
+          TEMP_OUTPUT=$(mktemp)
+          
+          if timeout 600 copilot --agent=sql-performance-review -p "$PROMPT" --allow-all-tools > "$TEMP_OUTPUT" 2>&1; then
+            COPILOT_RESULT=$(cat "$TEMP_OUTPUT")
             echo "Copilot CLI executed successfully"
             echo "Result length: ${#COPILOT_RESULT} characters"
           else
             EXIT_CODE=$?
+            COPILOT_ERROR=$(cat "$TEMP_OUTPUT")
             echo "Copilot CLI encountered an error (exit code: $EXIT_CODE)"
-            echo "Error output: $COPILOT_RESULT"
+            echo "Error output: $COPILOT_ERROR"
             COPILOT_RESULT="申し訳ございませんが、分析中にエラーが発生しました。
 
             エラー詳細: 
-            $COPILOT_RESULT
+            $COPILOT_ERROR
 
             手動での確認をお願いいたします。問題が継続する場合は、添付ファイルを直接確認してください。"
           fi
+          
+          # Clean up temporary file
+          rm -f "$TEMP_OUTPUT"
           
           # Use heredoc format for multiline output
           {
@@ -126,28 +134,32 @@ jobs:
       - name: Post Comment to Issue
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           ISSUE_NUMBER="${{ steps.issue-content.outputs.issue-number }}"
           COPILOT_RESULT="${{ steps.copilot-analysis.outputs.result }}"
           
-          # Create comment body using heredoc
-          COMMENT_BODY=$(cat << 'EOL'
+          # Create a temporary file for the comment body to handle special characters safely
+          TEMP_COMMENT=$(mktemp)
+          cat > "$TEMP_COMMENT" << 'EOL'
           ## 🤖 Copilot CLI による分析結果
 
-          $COPILOT_RESULT
+          COPILOT_RESULT_PLACEHOLDER
 
           ---
           *この回答は GitHub Copilot CLI により自動生成されました。添付ファイルの URL がある場合は、Copilot CLI が自動的にアクセスして分析に含めます。*
           EOL
-          )
           
-          # Substitute the actual result
-          COMMENT_BODY=$(echo "$COMMENT_BODY" | sed "s/\$COPILOT_RESULT/$COPILOT_RESULT/g")
+          # Replace placeholder with actual result, properly escaping
+          COMMENT_BODY=$(cat "$TEMP_COMMENT" | sed "s/COPILOT_RESULT_PLACEHOLDER/${COPILOT_RESULT//\\/\\\\}/g")
+          
+          # Clean up temporary file
+          rm -f "$TEMP_COMMENT"
           
           # Escape JSON for API call
-          ESCAPED_COMMENT=$(echo "$COMMENT_BODY" | jq -Rs .)
+          ESCAPED_COMMENT=$(printf '%s' "$COMMENT_BODY" | jq -Rs .)
           
           # Post comment using GitHub REST API
           curl -X POST \
