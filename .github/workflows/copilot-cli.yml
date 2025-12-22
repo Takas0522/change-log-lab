@@ -35,8 +35,8 @@ jobs:
           echo "issue-body=${ISSUE_BODY}" >> $GITHUB_OUTPUT
           echo "issue-number=${ISSUE_NUMBER}" >> $GITHUB_OUTPUT
           
-          # Create prompt for Copilot CLI
-          PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。
+          # Create prompt for Copilot CLI (keep original markdown format with URLs)
+          PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。添付ファイルのURLがある場合は、そのファイルの内容も参照してください。
 
           タイトル: ${ISSUE_TITLE}
           
@@ -53,7 +53,18 @@ jobs:
           PROMPT="${{ steps.issue-content.outputs.copilot-prompt }}"
           
           echo "Running Copilot CLI analysis..."
-          COPILOT_RESULT=$(copilot -p "$PROMPT" --allow-all-tools 2>&1 || echo "Error occurred during analysis")
+          echo "Prompt length: ${#PROMPT} characters"
+          
+          # Run Copilot CLI with error handling
+          COPILOT_RESULT=""
+          if COPILOT_RESULT=$(copilot -p "$PROMPT" --allow-all-tools 2>&1); then
+            echo "Copilot CLI executed successfully"
+          else
+            echo "Copilot CLI encountered an error, using fallback response"
+            COPILOT_RESULT="申し訳ございませんが、分析中にエラーが発生しました。
+            エラー詳細: $COPILOT_RESULT
+            手動での確認をお願いいたします。"
+          fi
           
           # Escape newlines for GitHub output
           ESCAPED_RESULT=$(echo "$COPILOT_RESULT" | jq -Rs .)
@@ -74,7 +85,7 @@ jobs:
           ${COPILOT_RESULT}
 
           ---
-          *この回答は GitHub Copilot CLI により自動生成されました。*"
+          *この回答は GitHub Copilot CLI により自動生成されました。添付ファイルの URL がある場合は、Copilot CLI が自動的にアクセスして分析に含めます。*"
           
           # Escape JSON for API call
           ESCAPED_COMMENT=$(echo "$COMMENT_BODY" | jq -Rs .)
