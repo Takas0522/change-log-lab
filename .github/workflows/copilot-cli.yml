@@ -5,6 +5,10 @@ on:
   issues:
     types: [opened]
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   issue-analysis:
     if: github.event_name == 'issues'
