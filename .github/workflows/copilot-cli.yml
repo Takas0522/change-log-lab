@@ -31,43 +31,57 @@ jobs:
           ISSUE_BODY="${{ github.event.issue.body }}"
           ISSUE_NUMBER="${{ github.event.issue.number }}"
           
-          echo "issue-title=${ISSUE_TITLE}" >> $GITHUB_OUTPUT
-          echo "issue-body=${ISSUE_BODY}" >> $GITHUB_OUTPUT
-          echo "issue-number=${ISSUE_NUMBER}" >> $GITHUB_OUTPUT
+          # Use heredoc format for multiline strings in GitHub Output
+          {
+            echo "issue-title=${ISSUE_TITLE}"
+            echo "issue-number=${ISSUE_NUMBER}"
+            echo "issue-body<<EOF"
+            echo "${ISSUE_BODY}"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
           
           # Extract URLs from markdown links and create a cleaner format
           PROCESSED_BODY="${ISSUE_BODY}"
+          echo "Debug: Original body:"
           echo "${PROCESSED_BODY}"
           
           # Extract GitHub attachment URLs and convert to plain text
           ATTACHMENT_URLS=$(echo "${ISSUE_BODY}" | grep -oE '\[([^\]]+)\]\((https://github\.com/user-attachments/files/[^)]+)\)' | sed -E 's/\[([^\]]+)\]\(([^)]+)\)/ファイル: \1\nURL: \2/g' || echo "")
+          echo "Debug: Attachment URLs:"
           echo "${ATTACHMENT_URLS}"
 
           # Replace markdown links with plain text in the body
           PROCESSED_BODY=$(echo "${ISSUE_BODY}" | sed -E 's/\[([^\]]+)\]\(https:\/\/github\.com\/user-attachments\/files\/[^)]+\)/添付ファイル: \1/g')
+          echo "Debug: Processed body:"
           echo "${PROCESSED_BODY}"
           
-          # Create prompt for Copilot CLI
+          # Create prompt for Copilot CLI using heredoc for multiline strings
           if [ -n "$ATTACHMENT_URLS" ]; then
-            PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。
-
-            タイトル: ${ISSUE_TITLE}
-
-            内容: ${PROCESSED_BODY}
-
-            添付ファイル:
-            ${ATTACHMENT_URLS}
-
-            これらのファイルURLから内容を取得して分析に含めてください。"
+            {
+              echo "copilot-prompt<<EOF"
+              echo "以下のIssueについて分析し、解決策や回答を提供してください。"
+              echo ""
+              echo "タイトル: ${ISSUE_TITLE}"
+              echo ""
+              echo "内容: ${PROCESSED_BODY}"
+              echo ""
+              echo "添付ファイル:"
+              echo "${ATTACHMENT_URLS}"
+              echo ""
+              echo "これらのファイルURLから内容を取得して分析に含めてください。"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
           else
-            PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。
-
-            タイトル: ${ISSUE_TITLE}
-
-            内容: ${PROCESSED_BODY}"
+            {
+              echo "copilot-prompt<<EOF"
+              echo "以下のIssueについて分析し、解決策や回答を提供してください。"
+              echo ""
+              echo "タイトル: ${ISSUE_TITLE}"
+              echo ""
+              echo "内容: ${PROCESSED_BODY}"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
           fi
-          
-          echo "copilot-prompt=${PROMPT}" >> $GITHUB_OUTPUT
 
       - name: Run Copilot CLI Analysis
         id: copilot-analysis
@@ -85,7 +99,7 @@ jobs:
           
           # Run Copilot CLI with error handling and better output capture
           COPILOT_RESULT=""
-          echo "Executing: copilot -p \"\$PROMPT\" --allow-all-tools"
+          echo "Executing: copilot with the prepared prompt"
           
           if COPILOT_RESULT=$(timeout 300 copilot -p "$PROMPT" --allow-all-tools 2>&1); then
             echo "Copilot CLI executed successfully"
@@ -102,9 +116,12 @@ jobs:
             手動での確認をお願いいたします。問題が継続する場合は、添付ファイルを直接確認してください。"
           fi
           
-          # Escape newlines for GitHub output
-          ESCAPED_RESULT=$(echo "$COPILOT_RESULT" | jq -Rs .)
-          echo "result=${ESCAPED_RESULT}" >> $GITHUB_OUTPUT
+          # Use heredoc format for multiline output
+          {
+            echo "result<<EOF"
+            echo "$COPILOT_RESULT"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Post Comment to Issue
         env:
@@ -113,15 +130,21 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           ISSUE_NUMBER="${{ steps.issue-content.outputs.issue-number }}"
-          COPILOT_RESULT=$(echo '${{ steps.copilot-analysis.outputs.result }}' | jq -r .)
+          COPILOT_RESULT="${{ steps.copilot-analysis.outputs.result }}"
           
-          # Create comment body
-          COMMENT_BODY="## 🤖 Copilot CLI による分析結果
+          # Create comment body using heredoc
+          COMMENT_BODY=$(cat << 'EOL'
+          ## 🤖 Copilot CLI による分析結果
 
-          ${COPILOT_RESULT}
+          $COPILOT_RESULT
 
           ---
-          *この回答は GitHub Copilot CLI により自動生成されました。添付ファイルの URL がある場合は、Copilot CLI が自動的にアクセスして分析に含めます。*"
+          *この回答は GitHub Copilot CLI により自動生成されました。添付ファイルの URL がある場合は、Copilot CLI が自動的にアクセスして分析に含めます。*
+          EOL
+          )
+          
+          # Substitute the actual result
+          COMMENT_BODY=$(echo "$COMMENT_BODY" | sed "s/\$COPILOT_RESULT/$COPILOT_RESULT/g")
           
           # Escape JSON for API call
           ESCAPED_COMMENT=$(echo "$COMMENT_BODY" | jq -Rs .)
