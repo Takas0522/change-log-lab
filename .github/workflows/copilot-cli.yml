@@ -1,0 +1,39 @@
+name: GitHub Copilot CLI Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copilot-cli-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install GitHub Copilot CLI
+        run: npm i -g @github/copilot
+      
+      - name: Setup GitHub Copilot CLI with PAT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          echo "Setting up GitHub Copilot CLI authentication..."
+          # Authenticate with GitHub using PAT
+          gh auth login --with-token <<< "$GITHUB_TOKEN"
+          
+          # Verify authentication
+          gh auth status
+      
+      - name: Run GitHub Copilot CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Running GitHub Copilot CLI with 'Hello' input..."
+          echo "Hello" | gh copilot --allow-all-tools
