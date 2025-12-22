@@ -18,6 +18,8 @@ jobs:
       #     cache: 'npm'
       
       - name: Install GitHub Copilot CLI
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           curl -fsSL https://gh.io/copilot-install | bash
           sudo rm -f /usr/bin/gh
