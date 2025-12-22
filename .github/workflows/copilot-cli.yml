@@ -35,12 +35,34 @@ jobs:
           echo "issue-body=${ISSUE_BODY}" >> $GITHUB_OUTPUT
           echo "issue-number=${ISSUE_NUMBER}" >> $GITHUB_OUTPUT
           
-          # Create prompt for Copilot CLI (keep original markdown format with URLs)
-          PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。添付ファイルのURLがある場合は、そのファイルの内容も参照してください。
+          # Extract URLs from markdown links and create a cleaner format
+          PROCESSED_BODY="${ISSUE_BODY}"
+          
+          # Extract GitHub attachment URLs and convert to plain text
+          ATTACHMENT_URLS=$(echo "${ISSUE_BODY}" | grep -oE '\[([^\]]+)\]\((https://github\.com/user-attachments/files/[^)]+)\)' | sed -E 's/\[([^\]]+)\]\(([^)]+)\)/ファイル: \1\nURL: \2/g' || echo "")
+          
+          # Replace markdown links with plain text in the body
+          PROCESSED_BODY=$(echo "${ISSUE_BODY}" | sed -E 's/\[([^\]]+)\]\(https:\/\/github\.com\/user-attachments\/files\/[^)]+\)/添付ファイル: \1/g')
+          
+          # Create prompt for Copilot CLI
+          if [ -n "$ATTACHMENT_URLS" ]; then
+            PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。
 
           タイトル: ${ISSUE_TITLE}
-          
-          内容: ${ISSUE_BODY}"
+
+          内容: ${PROCESSED_BODY}
+
+          添付ファイル:
+          ${ATTACHMENT_URLS}
+
+          これらのファイルURLから内容を取得して分析に含めてください。"
+                    else
+                      PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。
+
+          タイトル: ${ISSUE_TITLE}
+
+          内容: ${PROCESSED_BODY}"
+          fi
           
           echo "copilot-prompt=${PROMPT}" >> $GITHUB_OUTPUT
 
@@ -54,16 +76,27 @@ jobs:
           
           echo "Running Copilot CLI analysis..."
           echo "Prompt length: ${#PROMPT} characters"
+          echo "--- Prompt Content (first 500 chars) ---"
+          echo "${PROMPT:0:500}..."
+          echo "--- End Prompt Preview ---"
           
-          # Run Copilot CLI with error handling
+          # Run Copilot CLI with error handling and better output capture
           COPILOT_RESULT=""
-          if COPILOT_RESULT=$(copilot -p "$PROMPT" --allow-all-tools 2>&1); then
+          echo "Executing: copilot -p \"\$PROMPT\" --allow-all-tools"
+          
+          if COPILOT_RESULT=$(timeout 300 copilot -p "$PROMPT" --allow-all-tools 2>&1); then
             echo "Copilot CLI executed successfully"
+            echo "Result length: ${#COPILOT_RESULT} characters"
           else
-            echo "Copilot CLI encountered an error, using fallback response"
+            EXIT_CODE=$?
+            echo "Copilot CLI encountered an error (exit code: $EXIT_CODE)"
+            echo "Error output: $COPILOT_RESULT"
             COPILOT_RESULT="申し訳ございませんが、分析中にエラーが発生しました。
-            エラー詳細: $COPILOT_RESULT
-            手動での確認をお願いいたします。"
+
+            エラー詳細: 
+            $COPILOT_RESULT
+
+            手動での確認をお願いいたします。問題が継続する場合は、添付ファイルを直接確認してください。"
           fi
           
           # Escape newlines for GitHub output
