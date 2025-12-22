@@ -48,20 +48,20 @@ jobs:
           if [ -n "$ATTACHMENT_URLS" ]; then
             PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。
 
-          タイトル: ${ISSUE_TITLE}
+            タイトル: ${ISSUE_TITLE}
 
-          内容: ${PROCESSED_BODY}
+            内容: ${PROCESSED_BODY}
 
-          添付ファイル:
-          ${ATTACHMENT_URLS}
+            添付ファイル:
+            ${ATTACHMENT_URLS}
 
-          これらのファイルURLから内容を取得して分析に含めてください。"
-                    else
-                      PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。
+            これらのファイルURLから内容を取得して分析に含めてください。"
+          else
+            PROMPT="以下のIssueについて分析し、解決策や回答を提供してください。
 
-          タイトル: ${ISSUE_TITLE}
+            タイトル: ${ISSUE_TITLE}
 
-          内容: ${PROCESSED_BODY}"
+            内容: ${PROCESSED_BODY}"
           fi
           
           echo "copilot-prompt=${PROMPT}" >> $GITHUB_OUTPUT
