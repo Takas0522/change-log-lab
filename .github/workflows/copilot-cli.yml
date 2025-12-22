@@ -18,7 +18,9 @@ jobs:
           cache: 'npm'
       
       - name: Install GitHub Copilot CLI
-        run: npm i -g @github/copilot
+        run: |
+          npm i -g @github/copilot
+          sudo rm -f /usr/bin/gh
       
       - name: Setup GitHub Copilot CLI with PAT
         env:
@@ -26,14 +28,12 @@ jobs:
         run: |
           echo "Setting up GitHub Copilot CLI authentication..."
           # Authenticate with GitHub using PAT
-          gh auth login --with-token <<< "$GITHUB_TOKEN"
+          # gh auth login --with-token <<< "$GITHUB_TOKEN"
           
           # Verify authentication
-          gh auth status
+          # gh auth status
       
       - name: Run GitHub Copilot CLI
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Running GitHub Copilot CLI with 'Hello' input..."
-          echo "Hello" | gh copilot --allow-all-tools
+          copilot -p "Hello" --allow-all-tools
