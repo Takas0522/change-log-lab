@@ -141,41 +141,36 @@ jobs:
         run: |
           ISSUE_NUMBER="${{ steps.issue-content.outputs.issue-number }}"
           
-          # Read the copilot result more safely
-          COPILOT_RESULT="${{ steps.copilot-analysis.outputs.result }}"
+          # Create a safe temporary file for the result
+          TEMP_RESULT=$(mktemp)
           
-          # Create comment body template
-          COMMENT_TEMPLATE="## 🤖 Copilot CLI による分析結果
+          # Write the copilot result to temporary file to avoid shell interpretation
+          cat << 'RESULT_EOF' > "$TEMP_RESULT"
+          ${{ steps.copilot-analysis.outputs.result }}
+          RESULT_EOF
+          
+          # Create comment body with template
+          TEMP_COMMENT=$(mktemp)
+          cat << 'COMMENT_EOF' > "$TEMP_COMMENT"
+          ## 🤖 Copilot CLI による分析結果
 
-          RESULT_PLACEHOLDER
+          COMMENT_EOF
+          
+          # Append the result content
+          cat "$TEMP_RESULT" >> "$TEMP_COMMENT"
+          
+          # Append the footer
+          cat << 'FOOTER_EOF' >> "$TEMP_COMMENT"
 
           ---
-          *この回答は GitHub Copilot CLI により自動生成されました。添付ファイルの URL がある場合は、Copilot CLI が自動的にアクセスして分析に含めます。*"
+          *この回答は GitHub Copilot CLI により自動生成されました。添付ファイルの URL がある場合は、Copilot CLI が自動的にアクセスして分析に含めます。*
+          FOOTER_EOF
           
-          # Create a temporary file for safe text processing
-          TEMP_RESULT=$(mktemp)
-          printf '%s' "$COPILOT_RESULT" > "$TEMP_RESULT"
+          # Escape for JSON using jq
+          ESCAPED_COMMENT=$(jq -Rs . < "$TEMP_COMMENT")
           
-          TEMP_FINAL=$(mktemp)
-          # Use awk for safer text replacement
-          awk -v result_file="$TEMP_RESULT" '
-          /RESULT_PLACEHOLDER/ {
-            while ((getline line < result_file) > 0)
-              print line
-            close(result_file)
-            next
-          }
-          { print }
-          ' <<< "$COMMENT_TEMPLATE" > "$TEMP_FINAL"
-          
-          # Clean up result temp file
-          rm -f "$TEMP_RESULT"
-          
-          # Escape JSON for API call using the safer approach
-          ESCAPED_COMMENT=$(jq -Rs . < "$TEMP_FINAL")
-          
-          # Clean up final temp file  
-          rm -f "$TEMP_FINAL"
+          # Clean up temporary files
+          rm -f "$TEMP_RESULT" "$TEMP_COMMENT"
           
           # Post comment using GitHub REST API
           curl -X POST \
