@@ -37,12 +37,15 @@ jobs:
           
           # Extract URLs from markdown links and create a cleaner format
           PROCESSED_BODY="${ISSUE_BODY}"
+          echo "${PROCESSED_BODY}"
           
           # Extract GitHub attachment URLs and convert to plain text
           ATTACHMENT_URLS=$(echo "${ISSUE_BODY}" | grep -oE '\[([^\]]+)\]\((https://github\.com/user-attachments/files/[^)]+)\)' | sed -E 's/\[([^\]]+)\]\(([^)]+)\)/ファイル: \1\nURL: \2/g' || echo "")
-          
+          echo "${ATTACHMENT_URLS}"
+
           # Replace markdown links with plain text in the body
           PROCESSED_BODY=$(echo "${ISSUE_BODY}" | sed -E 's/\[([^\]]+)\]\(https:\/\/github\.com\/user-attachments\/files\/[^)]+\)/添付ファイル: \1/g')
+          echo "${PROCESSED_BODY}"
           
           # Create prompt for Copilot CLI
           if [ -n "$ATTACHMENT_URLS" ]; then
