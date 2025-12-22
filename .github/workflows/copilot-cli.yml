@@ -19,7 +19,7 @@ jobs:
       
       - name: Install GitHub Copilot CLI
         run: |
-          npm i -g @github/copilot
+          curl -fsSL https://gh.io/copilot-install | bash
           sudo rm -f /usr/bin/gh
 
           echo "Running GitHub Copilot CLI with 'Hello' input..."
