@@ -114,6 +114,38 @@ Content-Type: application/json
 DELETE {{baseUrl}}/api/lists/{{listId}}/members/{{memberId}}
 Authorization: Bearer {{token}}
 
+### --- Invitation Workflow ---
+
+### Create invitation (owner/editor only)
+@inviteeUserId = 00000000-0000-0000-0000-000000000000
+POST {{baseUrl}}/api/lists/{{listId}}/invites
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "inviteeUserId": "{{inviteeUserId}}"
+}
+
+### Get invitation details
+@inviteId = 00000000-0000-0000-0000-000000000000
+GET {{baseUrl}}/api/invites/{{inviteId}}
+Authorization: Bearer {{token}}
+
+### Accept invitation (invitee only)
+POST {{baseUrl}}/api/invites/{{inviteId}}/accept
+Authorization: Bearer {{token}}
+
+### Cancel invitation (inviter) or Reject invitation (invitee)
+DELETE {{baseUrl}}/api/invites/{{inviteId}}
+Authorization: Bearer {{token}}
+
+### Remove user access from list (owner/editor only)
+@userIdToRemove = 00000000-0000-0000-0000-000000000000
+DELETE {{baseUrl}}/api/lists/{{listId}}/access/{{userIdToRemove}}
+Authorization: Bearer {{token}}
+
+### --- End Invitation Workflow ---
+
 ### Delete todo
 DELETE {{baseUrl}}/api/lists/{{listId}}/todos/{{todoId}}
 Authorization: Bearer {{token}}

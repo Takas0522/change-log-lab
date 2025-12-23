@@ -43,6 +43,23 @@ CREATE INDEX IF NOT EXISTS idx_list_members_list ON list_members(list_id);
 CREATE INDEX IF NOT EXISTS idx_list_members_user ON list_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_list_members_list_user ON list_members(list_id, user_id);
 
+-- List invites table for invitation workflow
+CREATE TABLE IF NOT EXISTS list_invites (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    list_id UUID NOT NULL REFERENCES lists(id) ON DELETE CASCADE,
+    inviter_user_id UUID NOT NULL,  -- User who sent the invitation
+    invitee_user_id UUID NOT NULL,  -- User who receives the invitation
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',  -- pending, accepted, rejected, cancelled
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_list_invites_list ON list_invites(list_id);
+CREATE INDEX IF NOT EXISTS idx_list_invites_invitee ON list_invites(invitee_user_id);
+CREATE INDEX IF NOT EXISTS idx_list_invites_status ON list_invites(status);
+CREATE INDEX IF NOT EXISTS idx_list_invites_list_invitee_status ON list_invites(list_id, invitee_user_id, status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_list_invites_pending_unique ON list_invites(list_id, invitee_user_id) WHERE status = 'pending';
+
 -- Outbox table for event-driven architecture (for INIT-009/010)
 CREATE TABLE IF NOT EXISTS outbox_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
