@@ -1,0 +1,5 @@
+{
+    "chat.agentFilesLocations": {
+        ".github/agents/sql": true
+    }
+}
