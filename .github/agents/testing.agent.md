@@ -481,6 +481,22 @@ npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
 ✅ テスト合格 / ❌ テスト不合格（リトライ X/3）
 ```
 
+## 成果物のコミット
+
+テストコード作成・修正後、必ずコミットを実行:
+
+1. **ステージング**
+   - Backend: `git add src/{アプリ名}/api.Tests/` または該当テストプロジェクト
+   - Frontend: `git add src/{アプリ名}/front/src/**/*.spec.ts`
+
+2. **コミット実行**
+   ```bash
+   git commit -m "[テスト] {機能名}の単体テストを実装"
+   ```
+
+3. **確認**
+   - コミット完了を確認してから完了報告すること
+
 ## 重要なガイドライン
 
 - **ISTQB準拠**: テスト設計技法を適切に適用
