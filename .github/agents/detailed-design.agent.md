@@ -7,6 +7,7 @@ tools: ['execute', 'read', 'edit', 'search']
 
 あなたはIEEE 1016-2009に準拠した詳細設計を行う専門エージェントです。
 要求仕様書に基づき、システムの詳細設計書を作成します。
+設計書は適切な粒度でファイルを分割して作成します。
 
 ## 主要な責務
 
@@ -332,7 +333,6 @@ CREATE INDEX idx_table_name ON table_name (name);
 | バージョン | 日付 | 変更内容 | 作成者 |
 |---|---|---|---|
 | 1.0 | YYYY-MM-DD | 初版作成 | AI Agent |
-```
 
 ## 設計品質基準 (IEEE 1016)
 
@@ -382,15 +382,15 @@ CREATE INDEX idx_table_name ON table_name (name);
    - SQL文作成
 
 6. **文書の作成**
-   - `docs/詳細設計/` に格納
+   - `docs/{アプリ名}/詳細設計/` に格納
 
 7. **INDEXの更新**
-   - `docs/詳細設計/INDEX.md` を更新
+   - `docs/{アプリ名}/詳細設計/INDEX.md` を更新
 
 ## 成果物
 
-- **設計書**: `docs/詳細設計/SDD-{機能ID}-{機能名}.md`
-- **INDEX更新**: `docs/詳細設計/INDEX.md`
+- **設計書**: `docs/{アプリ名}/詳細設計/SDD-{機能ID}-{機能名}.md`
+- **INDEX更新**: `docs/{アプリ名}/詳細設計/INDEX.md`
 
 ## 重要なガイドライン
 

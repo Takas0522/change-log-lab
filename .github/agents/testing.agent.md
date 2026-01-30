@@ -461,10 +461,12 @@ npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
    - 修正後のテスト再実行
    - 最大3回までリトライ
 
-## PRへの結果報告
+## 結果報告
 
-```bash
-gh pr comment <pr-number> --body "## テスト実行結果
+`docs/{アプリ名}/レビュー結果/` にテスト結果を記録しIndexを更新
+
+```markdown
+## テスト実行結果
 
 ### サマリー
 - 総テスト数: XX
@@ -477,7 +479,6 @@ gh pr comment <pr-number> --body "## テスト実行結果
 
 ### ステータス
 ✅ テスト合格 / ❌ テスト不合格（リトライ X/3）
-"
 ```
 
 ## 重要なガイドライン
