@@ -54,6 +54,11 @@ public class ResponseMeta
 public class NotFoundException : Exception
 {
     public NotFoundException(string message) : base(message) { }
+    
+    public NotFoundException(string resourceName, object key) 
+        : base($"{resourceName} with key '{key}' was not found.")
+    {
+    }
 }
 
 /// <summary>
@@ -69,6 +74,14 @@ public class ValidationException : Exception
     {
         Errors = errors;
     }
+}
+
+/// <summary>
+/// カスタム例外: 同時実行制御エラー
+/// </summary>
+public class ConcurrencyException : Exception
+{
+    public ConcurrencyException(string message) : base(message) { }
 }
 
 /// <summary>

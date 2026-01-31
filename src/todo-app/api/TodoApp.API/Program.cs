@@ -1,5 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Infrastructure.Data;
+using TodoApp.Infrastructure.Repositories;
+using TodoApp.Infrastructure.Repositories.Interfaces;
+using TodoApp.Application.Services;
+using TodoApp.Application.Services.Interfaces;
+using TodoApp.API.Middleware;
+using AspNetCoreRateLimit;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +40,24 @@ builder.Services.AddDbContext<TodoDbContext>(options =>
     }
 });
 
+// REQ-SEC-004対応: レート制限設定
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
+// Application層サービス登録
+builder.Services.AddScoped<ITodoService, TodoService>();
+builder.Services.AddScoped<ILabelService, LabelService>();
+
+// Infrastructure層リポジトリ登録
+builder.Services.AddScoped<ITodoRepository, TodoRepository>();
+builder.Services.AddScoped<ILabelRepository, LabelRepository>();
+
+// FluentValidation登録
+builder.Services.AddValidatorsFromAssemblyContaining<TodoApp.Application.Validators.CreateTodoRequestValidator>();
+builder.Services.AddFluentValidationAutoValidation();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -62,13 +88,12 @@ builder.Services.AddSwaggerGen(c =>
     }
 });
 
-// TODO: Service層とRepository層の登録（後で実装）
-// builder.Services.AddScoped<ITodoService, TodoService>();
-// builder.Services.AddScoped<ILabelService, LabelService>();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
+// グローバル例外ハンドラー（最初に登録）
+app.UseMiddleware<GlobalExceptionHandler>();
+
 // REQ-SEC-006対応: セキュリティヘッダー
 app.Use(async (context, next) =>
 {
@@ -76,6 +101,7 @@ app.Use(async (context, next) =>
     context.Response.Headers["X-Frame-Options"] = "DENY";
     context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
     context.Response.Headers["Referrer-Policy"] = "no-referrer";
+    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'";
     await next();
 });
 
@@ -93,6 +119,9 @@ app.UseHttpsRedirection();
 
 // REQ-SEC-001対応: CORS有効化
 app.UseCors("AllowFrontend");
+
+// REQ-SEC-004対応: レート制限有効化
+app.UseIpRateLimiting();
 
 app.UseAuthorization();
 

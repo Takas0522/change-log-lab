@@ -21,9 +21,17 @@ public class TodoDto
 /// </summary>
 public class CreateTodoRequest
 {
+    [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "タイトルは必須です")]
+    [System.ComponentModel.DataAnnotations.MaxLength(200, ErrorMessage = "タイトルは200文字以内です")]
     public string Title { get; set; } = string.Empty;
+
+    [System.ComponentModel.DataAnnotations.MaxLength(4000, ErrorMessage = "内容は4000文字以内です")]
     public string? Content { get; set; }
+
+    [System.ComponentModel.DataAnnotations.Required]
     public string Status { get; set; } = "NotStarted";
+
+    [System.ComponentModel.DataAnnotations.MaxLength(10, ErrorMessage = "ラベルは最大10個までです")]
     public List<int> LabelIds { get; set; } = new();
 }
 
@@ -33,9 +41,17 @@ public class CreateTodoRequest
 /// </summary>
 public class UpdateTodoRequest
 {
+    [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "タイトルは必須です")]
+    [System.ComponentModel.DataAnnotations.MaxLength(200, ErrorMessage = "タイトルは200文字以内です")]
     public string Title { get; set; } = string.Empty;
+
+    [System.ComponentModel.DataAnnotations.MaxLength(4000, ErrorMessage = "内容は4000文字以内です")]
     public string? Content { get; set; }
+
+    [System.ComponentModel.DataAnnotations.Required]
     public string Status { get; set; } = string.Empty;
+
+    [System.ComponentModel.DataAnnotations.MaxLength(10, ErrorMessage = "ラベルは最大10個までです")]
     public List<int> LabelIds { get; set; } = new();
 }
 
@@ -45,6 +61,7 @@ public class UpdateTodoRequest
 /// </summary>
 public class UpdateTodoStatusRequest
 {
+    [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "ステータスは必須です")]
     public string Status { get; set; } = string.Empty;
 }
 
