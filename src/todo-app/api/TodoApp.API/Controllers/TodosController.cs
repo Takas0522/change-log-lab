@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TodoApp.Application.DTOs;
 using TodoApp.Application.Common;
+using TodoApp.Application.Services.Interfaces;
 
 namespace TodoApp.API.Controllers;
 
@@ -14,10 +15,14 @@ namespace TodoApp.API.Controllers;
 public class TodosController : ControllerBase
 {
     private readonly ILogger<TodosController> _logger;
+    private readonly ITodoService _todoService;
 
-    public TodosController(ILogger<TodosController> logger)
+    public TodosController(
+        ILogger<TodosController> logger,
+        ITodoService todoService)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _todoService = todoService ?? throw new ArgumentNullException(nameof(todoService));
     }
 
     /// <summary>
@@ -28,17 +33,10 @@ public class TodosController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<PagedResult<TodoDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetTodos([FromQuery] TodoQueryParameters parameters)
     {
-        _logger.LogInformation("GetTodos called with Page={Page}, PageSize={PageSize}", 
+        _logger.LogInformation("Getting todos with parameters: Page={Page}, PageSize={PageSize}", 
             parameters.Page, parameters.PageSize);
         
-        // TODO: Service実装後に差し替え
-        var result = new PagedResult<TodoDto>
-        {
-            Items = new List<TodoDto>(),
-            TotalCount = 0,
-            Page = parameters.Page,
-            PageSize = parameters.PageSize
-        };
+        var result = await _todoService.GetTodosAsync(parameters);
         
         var response = new ApiResponse<PagedResult<TodoDto>>
         {
@@ -66,22 +64,38 @@ public class TodosController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTodoById(long id)
     {
-        _logger.LogInformation("GetTodoById called with ID={Id}", id);
+        _logger.LogInformation("Getting todo by id: {TodoId}", id);
         
-        // TODO: Service実装後に差し替え
-        return NotFound(new ApiResponse<object>
+        var todo = await _todoService.GetTodoByIdAsync(id);
+        if (todo == null)
         {
-            Success = false,
-            Errors = new List<ApiError>
+            return NotFound(new ApiResponse<object>
             {
-                new ApiError { Code = "NOT_FOUND", Message = $"Todo with ID {id} not found" }
-            },
+                Success = false,
+                Errors = new List<ApiError>
+                {
+                    new ApiError { Code = "NOT_FOUND", Message = $"Todo with id {id} not found" }
+                },
+                Meta = new ResponseMeta
+                {
+                    Timestamp = DateTime.UtcNow,
+                    RequestId = HttpContext.TraceIdentifier
+                }
+            });
+        }
+        
+        var response = new ApiResponse<TodoDto>
+        {
+            Success = true,
+            Data = todo,
             Meta = new ResponseMeta
             {
                 Timestamp = DateTime.UtcNow,
                 RequestId = HttpContext.TraceIdentifier
             }
-        });
+        };
+        
+        return Ok(response);
     }
 
     /// <summary>
@@ -93,19 +107,9 @@ public class TodosController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateTodo([FromBody] CreateTodoRequest request)
     {
-        _logger.LogInformation("CreateTodo called with Title={Title}", request.Title);
+        _logger.LogInformation("Creating new todo with title: {Title}", request.Title);
         
-        // TODO: Service実装後に差し替え
-        var todo = new TodoDto
-        {
-            TodoId = 1,
-            Title = request.Title,
-            Content = request.Content,
-            Status = request.Status,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            Labels = new List<LabelDto>()
-        };
+        var todo = await _todoService.CreateTodoAsync(request);
         
         var response = new ApiResponse<TodoDto>
         {
@@ -130,10 +134,22 @@ public class TodosController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTodo(long id, [FromBody] UpdateTodoRequest request)
     {
-        _logger.LogInformation("UpdateTodo called with ID={Id}", id);
+        _logger.LogInformation("Updating todo: {TodoId}", id);
         
-        // TODO: Service実装後に差し替え
-        return NotFound();
+        var todo = await _todoService.UpdateTodoAsync(id, request);
+        
+        var response = new ApiResponse<TodoDto>
+        {
+            Success = true,
+            Data = todo,
+            Meta = new ResponseMeta
+            {
+                Timestamp = DateTime.UtcNow,
+                RequestId = HttpContext.TraceIdentifier
+            }
+        };
+        
+        return Ok(response);
     }
 
     /// <summary>
@@ -145,9 +161,10 @@ public class TodosController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTodo(long id)
     {
-        _logger.LogInformation("DeleteTodo called with ID={Id}", id);
+        _logger.LogInformation("Deleting todo: {TodoId}", id);
         
-        // TODO: Service実装後に差し替え
+        await _todoService.DeleteTodoAsync(id);
+        
         return NoContent();
     }
 
@@ -160,10 +177,21 @@ public class TodosController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTodoStatus(long id, [FromBody] UpdateTodoStatusRequest request)
     {
-        _logger.LogInformation("UpdateTodoStatus called with ID={Id}, Status={Status}", 
-            id, request.Status);
+        _logger.LogInformation("Updating todo status: {TodoId} to {Status}", id, request.Status);
         
-        // TODO: Service実装後に差し替え
-        return NotFound();
+        var todo = await _todoService.UpdateStatusAsync(id, request);
+        
+        var response = new ApiResponse<TodoDto>
+        {
+            Success = true,
+            Data = todo,
+            Meta = new ResponseMeta
+            {
+                Timestamp = DateTime.UtcNow,
+                RequestId = HttpContext.TraceIdentifier
+            }
+        };
+        
+        return Ok(response);
     }
 }

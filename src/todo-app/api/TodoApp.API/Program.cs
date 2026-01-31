@@ -12,17 +12,35 @@ using FluentValidation.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-// REQ-SEC-001対応: CORS設定
-builder.Services.AddCors(options =>
+// REQ-SEC-001対応: CORS設定（環境別）
+if (builder.Environment.IsDevelopment())
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    builder.Services.AddCors(options =>
     {
-        policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
     });
-});
+}
+else
+{
+    // 本番環境では具体的なドメインを指定
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            var allowedOrigins = builder.Configuration["AllowedOrigins"] ?? "https://yourdomain.com";
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
+    });
+}
 
 // REQ-COMP-002対応: Entity Framework Core
 builder.Services.AddDbContext<TodoDbContext>(options =>

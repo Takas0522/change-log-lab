@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TodoApp.Application.DTOs;
 using TodoApp.Application.Common;
+using TodoApp.Application.Services.Interfaces;
 
 namespace TodoApp.API.Controllers;
 
@@ -14,10 +15,14 @@ namespace TodoApp.API.Controllers;
 public class LabelsController : ControllerBase
 {
     private readonly ILogger<LabelsController> _logger;
+    private readonly ILabelService _labelService;
 
-    public LabelsController(ILogger<LabelsController> logger)
+    public LabelsController(
+        ILogger<LabelsController> logger,
+        ILabelService labelService)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _labelService = labelService ?? throw new ArgumentNullException(nameof(labelService));
     }
 
     /// <summary>
@@ -28,17 +33,19 @@ public class LabelsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<List<LabelDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLabels()
     {
-        _logger.LogInformation("GetLabels called");
+        _logger.LogInformation("Getting all labels");
         
-        // TODO: Service実装後に差し替え
+        var labels = await _labelService.GetAllLabelsAsync();
+        
         var response = new ApiResponse<List<LabelDto>>
         {
             Success = true,
-            Data = new List<LabelDto>(),
+            Data = labels,
             Meta = new ResponseMeta
             {
                 Timestamp = DateTime.UtcNow,
-                RequestId = HttpContext.TraceIdentifier
+                RequestId = HttpContext.TraceIdentifier,
+                Total = labels.Count
             }
         };
         
@@ -54,16 +61,9 @@ public class LabelsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateLabel([FromBody] CreateLabelRequest request)
     {
-        _logger.LogInformation("CreateLabel called with Name={Name}", request.Name);
+        _logger.LogInformation("Creating new label with name: {Name}", request.Name);
         
-        // TODO: Service実装後に差し替え
-        var label = new LabelDto
-        {
-            LabelId = 1,
-            Name = request.Name,
-            Color = request.Color,
-            CreatedAt = DateTime.UtcNow
-        };
+        var label = await _labelService.CreateLabelAsync(request);
         
         var response = new ApiResponse<LabelDto>
         {
@@ -87,10 +87,38 @@ public class LabelsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetLabelById(int id)
     {
-        _logger.LogInformation("GetLabelById called with ID={Id}", id);
+        _logger.LogInformation("Getting label by id: {LabelId}", id);
         
-        // TODO: Service実装後に差し替え
-        return NotFound();
+        var label = await _labelService.GetLabelByIdAsync(id);
+        if (label == null)
+        {
+            return NotFound(new ApiResponse<object>
+            {
+                Success = false,
+                Errors = new List<ApiError>
+                {
+                    new ApiError { Code = "NOT_FOUND", Message = $"Label with id {id} not found" }
+                },
+                Meta = new ResponseMeta
+                {
+                    Timestamp = DateTime.UtcNow,
+                    RequestId = HttpContext.TraceIdentifier
+                }
+            });
+        }
+        
+        var response = new ApiResponse<LabelDto>
+        {
+            Success = true,
+            Data = label,
+            Meta = new ResponseMeta
+            {
+                Timestamp = DateTime.UtcNow,
+                RequestId = HttpContext.TraceIdentifier
+            }
+        };
+        
+        return Ok(response);
     }
 
     /// <summary>
@@ -102,10 +130,22 @@ public class LabelsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateLabel(int id, [FromBody] UpdateLabelRequest request)
     {
-        _logger.LogInformation("UpdateLabel called with ID={Id}", id);
+        _logger.LogInformation("Updating label: {LabelId}", id);
         
-        // TODO: Service実装後に差し替え
-        return NotFound();
+        var label = await _labelService.UpdateLabelAsync(id, request);
+        
+        var response = new ApiResponse<LabelDto>
+        {
+            Success = true,
+            Data = label,
+            Meta = new ResponseMeta
+            {
+                Timestamp = DateTime.UtcNow,
+                RequestId = HttpContext.TraceIdentifier
+            }
+        };
+        
+        return Ok(response);
     }
 
     /// <summary>
@@ -117,9 +157,10 @@ public class LabelsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteLabel(int id)
     {
-        _logger.LogInformation("DeleteLabel called with ID={Id}", id);
+        _logger.LogInformation("Deleting label: {LabelId}", id);
         
-        // TODO: Service実装後に差し替え
+        await _labelService.DeleteLabelAsync(id);
+        
         return NoContent();
     }
 }
