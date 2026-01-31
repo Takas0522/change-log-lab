@@ -13,7 +13,8 @@
 | 詳細設計 | 2025-01-31 | 1/3 | ❌ 不合格 | AI Reviewer Agent | [詳細設計レビュー結果_1回目.md](./詳細設計レビュー結果_1回目.md) |
 | 詳細設計 | 2025-01-31 | 2/3 | ✅ 合格 | AI Reviewer Agent | [詳細設計レビュー結果_2回目.md](./詳細設計レビュー結果_2回目.md) |
 | 結合テストシナリオ | 2025-01-31 | 1/3 | ✅ 合格 | AI Quality Review Agent | [結合テストシナリオレビュー結果_1回目.md](./結合テストシナリオレビュー結果_1回目.md) |
-| **開発** | **2025-01-31** | **1/3** | **❌ 不合格** | **Quality Assurance Agent** | **[開発レビュー結果_1回目.md](./開発レビュー結果_1回目.md)** |
+| 開発 | 2025-01-31 | 1/3 | ❌ 不合格 | Quality Assurance Agent | [開発レビュー結果_1回目.md](./開発レビュー結果_1回目.md) |
+| **開発** | **2025-01-31** | **2/3** | **❌ 不合格** | **Quality Assurance Agent** | **[開発レビュー結果_2回目.md](./開発レビュー結果_2回目.md)** |
 
 ## 判定基準
 
@@ -125,7 +126,27 @@
 
 **判定**: ❌ **不合格**（Service/Repository層未実装、実装完成度50%）
 
+#### 第2回レビュー結果（2025-01-31 04:10）
+| 重要度 | 件数 | 割合 | 前回比 |
+|---|---|---|---|
+| Critical | 1 | 10.0% | -5（✅大幅改善） |
+| Major | 6 | 60.0% | -2（⚠️一部改善） |
+| Minor | 3 | 30.0% | ±0（継続） |
+| **合計** | **10** | **100%** | **-7（41%改善）** |
+
+**判定**: ❌ **不合格**（Controller-Service統合未完了、実装完成度85%）
+
+**主な改善点**:
+- ✅ Service層・Repository層完全実装（Critical問題5件解消）
+- ✅ FluentValidation実装・DI登録完了
+- ✅ APIレート制限実装
+- ✅ グローバル例外ハンドラー実装
+- ✅ 楽観的同時実行制御実装
+- ❌ Controller-Service統合未完了（新Critical問題1件）
+
 #### カテゴリ別指摘（開発フェーズ）
+
+##### 第1回レビュー
 | カテゴリ | Critical | Major | Minor | 合計 |
 |---|---|---|---|---|
 | Backend | 6 | 4 | 2 | 12 |
@@ -133,6 +154,15 @@
 | Database | 0 | 1 | 0 | 1 |
 | セキュリティ | 3 | 2 | 0 | 5 |
 | ドキュメント | 0 | 0 | 1 | 1 |
+
+##### 第2回レビュー
+| カテゴリ | Critical | Major | Minor | 合計 | 前回比 |
+|---|---|---|---|---|---|
+| Backend | 1 | 4 | 2 | 7 | ▼5 |
+| Frontend | 0 | 1 | 1 | 2 | ±0 |
+| Database | 0 | 0 | 0 | 0 | ▼1 |
+| セキュリティ | 0 | 1 | 0 | 1 | ▼4 |
+| ドキュメント | 0 | 0 | 1 | 1 | ±0 |
 
 #### カバレッジ評価（結合テストシナリオ）
 | 要件カテゴリ | 対象要件数 | カバー数 | カバレッジ |
@@ -177,32 +207,57 @@
 
 ## 次のアクション
 
-### 開発フェーズ第1回レビュー結果に基づく修正タスク
-**ステータス**: ❌ 不合格（実装完成度50%）
-**期限**: 次回レビュー前（2/3回目）- 推定修正時間8～12時間
+### 開発フェーズ第2回レビュー結果に基づく修正タスク
+**ステータス**: ❌ 不合格（Controller-Service統合未完了、実装完成度85%）
+**期限**: 次回最終レビュー前（3/3回目）- 推定修正時間30分
 
-#### 最優先（Critical）- すべて即座に修正必須
-1. [ ] C-01: Service層の実装（ITodoService, TodoService, ILabelService, LabelService）
-2. [ ] C-02: Repository層の実装（ITodoRepository, TodoRepository, ILabelRepository, LabelRepository）
-3. [ ] C-03: FluentValidationの実装（CreateTodoRequestValidator等）
-4. [ ] C-04: APIレート制限の実装（AspNetCoreRateLimit）
-5. [ ] C-05: DTOへの入力検証属性追加（[Required], [MaxLength]等）
-6. [ ] C-06: DIコンテナへのService/Repository登録
+#### 最優先（Critical）- 即座に修正必須
+1. [ ] **C-07: ControllerとServiceの統合**（所要時間: 30分）
+   - `TodosController` のコンストラクタに `ITodoService` を注入
+   - `LabelsController` のコンストラクタに `ILabelService` を注入
+   - 11箇所の `// TODO: Service実装後に差し替え` を削除し、Serviceメソッド呼び出しに置換
+   - 動作確認（Swagger UI or Postman）
 
-#### 優先（Major）- 第2回レビュー前に解決推奨
-7. [ ] M-01: 日本語全文検索機能のテスト・Repository実装
-8. [ ] M-02: グローバル例外ハンドリングミドルウェア実装
-9. [ ] M-03: CORSポリシーの環境別設定
-10. [ ] M-04: セキュリティヘッダーの完全化（CSP, HSTS）
-11. [ ] M-05: フロントエンドコンポーネント追加（TodoForm, TodoDetail, LabelList等）
-12. [ ] M-06: 楽観的同時実行制御の実装
-13. [ ] M-07: トランザクション管理の実装
-14. [ ] M-08: ログ戦略の整備（Serilog導入）
+#### 優先（Major）- 第3回レビュー前に解決推奨（4件以上の解決が望ましい）
+2. [ ] M-01: 全文検索機能の完全実装とテスト（`CONTAINS`/`FREETEXT`使用）
+3. [ ] M-03: CORSポリシーの環境別設定
+4. [ ] M-05: フロントエンドコンポーネント追加（TodoForm, TodoDetail, LabelList等）
+5. [ ] M-07: 明示的トランザクション管理の実装
+6. [ ] M-08: 構造化ログ導入（Serilog）
 
 #### 推奨（Minor）- 品質向上のため推奨
-15. [ ] m-01: XMLコメントの完全化
-16. [ ] m-02: 単体テストプロジェクト作成
-17. [ ] m-03: 環境別設定ファイル整備
+7. [ ] m-01: XMLコメントの完全化
+8. [ ] m-02: 単体テストプロジェクト作成
+9. [ ] m-03: 環境別設定ファイル整備
+
+---
+
+### 開発フェーズ第1回レビュー結果に基づく修正タスク（✅大幅改善）
+**ステータス**: ⚠️ 6件中5件解消、1件は新Critical問題として継続
+
+#### ✅ 最優先（Critical）- 6件中5件完了
+1. [x] C-01: Service層の実装（ITodoService, TodoService, ILabelService, LabelService）
+2. [x] C-02: Repository層の実装（ITodoRepository, TodoRepository, ILabelRepository, LabelRepository）
+3. [x] C-03: FluentValidationの実装（CreateTodoRequestValidator等5クラス）
+4. [x] C-04: APIレート制限の実装（AspNetCoreRateLimit、100req/分）
+5. [x] C-05: DTOへの入力検証属性追加（[Required], [MaxLength]等）
+6. [x] C-06: DIコンテナへのService/Repository登録
+7. [ ] **C-07（新規）: ControllerとServiceの統合** ← 第2回レビューで発見
+
+#### ✅ 優先（Major）- 8件中2件完了、6件継続
+8. [x] M-02: グローバル例外ハンドリングミドルウェア実装
+9. [x] M-06: 楽観的同時実行制御の実装
+10. [ ] M-01: 日本語全文検索機能のテスト・Repository実装（⚠️一部改善）
+11. [ ] M-03: CORSポリシーの環境別設定（継続）
+12. [ ] M-04: セキュリティヘッダーの完全化 → ✅解消（第2回レビューで確認）
+13. [ ] M-05: フロントエンドコンポーネント追加（継続）
+14. [ ] M-07: トランザクション管理の実装（継続）
+15. [ ] M-08: ログ戦略の整備（Serilog導入）（継続）
+
+#### 推奨（Minor）- 継続
+16. [ ] m-01: XMLコメントの完全化
+17. [ ] m-02: 単体テストプロジェクト作成
+18. [ ] m-03: 環境別設定ファイル整備
 
 ---
 
@@ -337,7 +392,8 @@
 | 2025-01-31 | 詳細設計レビュー結果（2回目）追加、✅合格判定、実装フェーズへの移行承認 | AI Reviewer Agent |
 | 2025-01-31 | 結合テストシナリオレビュー結果（1回目）追加、✅合格判定（要件カバレッジ100%）、開発フェーズへの移行承認 | AI Quality Review Agent |
 | 2025-01-31 | 開発レビュー結果（1回目）追加、❌不合格判定（Service/Repository層未実装、実装完成度50%）、Critical問題6件・Major問題8件 | Quality Assurance Agent |
+| 2025-01-31 | 開発レビュー結果（2回目）追加、❌不合格判定（Controller-Service統合未完了、実装完成度85%）、Critical問題1件・Major問題6件、前回比41%改善 | Quality Assurance Agent |
 
 ---
 
-**最終更新**: 2025-01-31 03:32 UTC
+**最終更新**: 2025-01-31 04:12 UTC
