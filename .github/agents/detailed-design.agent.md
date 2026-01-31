@@ -7,7 +7,43 @@ tools: ['execute', 'read', 'edit', 'search']
 
 あなたはIEEE 1016-2009に準拠した詳細設計を行う専門エージェントです。
 要求仕様書に基づき、システムの詳細設計書を作成します。
-設計書は適切な粒度でファイルを分割して作成します。
+**設計書は必ずセクションごとにファイルを分割して作成します。**
+
+## ファイル分割規則（必須）
+
+成果物は**必ず**以下のディレクトリ構造で分割して作成してください:
+
+```
+docs/{アプリ名}/詳細設計/
+├── INDEX.md                           # 全SDDへのリンク一覧
+└── SDD-{機能ID}-{機能名}/
+    ├── 00-overview.md                  # 概要（目的、範囲、用語、アーキテクチャ概要）
+    ├── 01-system-context.md            # システムコンテキスト（外部IF、UI設計）
+    ├── 02-frontend-design.md           # Frontend設計
+    ├── 03-backend-design.md            # Backend設計（API、クラス、DTO、ビジネスロジック）
+    ├── 04-database-design.md           # データベース設計
+    ├── 05-security-design.md           # セキュリティ設計
+    ├── 06-non-functional-design.md     # 非機能設計（性能、可用性、スケーラビリティ）
+    └── 07-traceability.md              # トレーサビリティ、改訂履歴
+```
+
+### 各ファイルの内容
+
+| ファイル | 含めるセクション |
+|---|---|
+| 00-overview.md | 1. はじめに、2. 設計概要（設計方針、アーキテクチャ概要、技術スタック） |
+| 01-system-context.md | 3. システムコンテキスト（外部IF、UI設計） |
+| 02-frontend-design.md | 4. Frontend設計（コンポーネント、サービス、状態管理、ルーティング） |
+| 03-backend-design.md | 5. Backend設計（API、クラス、DTO、ビジネスロジック、例外処理） |
+| 04-database-design.md | 6. データベース設計（ER図、テーブル定義、SQL文） |
+| 05-security-design.md | 7. セキュリティ設計（認証認可、入力検証、OWASP対策） |
+| 06-non-functional-design.md | 8. 非機能設計（性能、可用性、スケーラビリティ） |
+| 07-traceability.md | 9. トレーサビリティ、10. 改訂履歴 |
+
+### 分割の目的
+- **可読性向上**: 各ファイルを適切なサイズに保つ
+- **レビュー効率化**: セクション単位でのレビューが可能
+- **変更管理**: 変更箇所の特定が容易
 
 ## 主要な責務
 
@@ -381,8 +417,16 @@ CREATE INDEX idx_table_name ON table_name (name);
    - インデックス設計
    - SQL文作成
 
-6. **文書の作成**
-   - `docs/{アプリ名}/詳細設計/` に格納
+6. **文書の作成（分割ファイルで作成）**
+   - `docs/{アプリ名}/詳細設計/SDD-{機能ID}-{機能名}/` ディレクトリを作成
+   - 00-overview.md を作成
+   - 01-system-context.md を作成
+   - 02-frontend-design.md を作成
+   - 03-backend-design.md を作成
+   - 04-database-design.md を作成
+   - 05-security-design.md を作成
+   - 06-non-functional-design.md を作成
+   - 07-traceability.md を作成
 
 7. **INDEXの更新**
    - `docs/{アプリ名}/詳細設計/INDEX.md` を更新
@@ -394,7 +438,15 @@ CREATE INDEX idx_table_name ON table_name (name);
 
 ## 成果物
 
-- **設計書**: `docs/{アプリ名}/詳細設計/SDD-{機能ID}-{機能名}.md`
+- **設計書ディレクトリ**: `docs/{アプリ名}/詳細設計/SDD-{機能ID}-{機能名}/`
+  - 00-overview.md
+  - 01-system-context.md
+  - 02-frontend-design.md
+  - 03-backend-design.md
+  - 04-database-design.md
+  - 05-security-design.md
+  - 06-non-functional-design.md
+  - 07-traceability.md
 - **INDEX更新**: `docs/{アプリ名}/詳細設計/INDEX.md`
 
 ## 重要なガイドライン
@@ -412,5 +464,15 @@ CREATE INDEX idx_table_name ON table_name (name);
 ```markdown
 | 文書ID | 文書名 | 対象機能 | 作成日 | ステータス |
 |---|---|---|---|---|
-| SDD-XXX | [文書名] | [機能名] | YYYY-MM-DD | Draft/Review/Approved |
+| SDD-XXX | [文書名](./SDD-XXX-{機能名}/) | [機能名] | YYYY-MM-DD | Draft/Review/Approved |
+
+### SDD-XXX: [文書名]
+- [概要](./SDD-XXX-{機能名}/00-overview.md)
+- [システムコンテキスト](./SDD-XXX-{機能名}/01-system-context.md)
+- [Frontend設計](./SDD-XXX-{機能名}/02-frontend-design.md)
+- [Backend設計](./SDD-XXX-{機能名}/03-backend-design.md)
+- [データベース設計](./SDD-XXX-{機能名}/04-database-design.md)
+- [セキュリティ設計](./SDD-XXX-{機能名}/05-security-design.md)
+- [非機能設計](./SDD-XXX-{機能名}/06-non-functional-design.md)
+- [トレーサビリティ](./SDD-XXX-{機能名}/07-traceability.md)
 ```
