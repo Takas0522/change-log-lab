@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS todos (
 
 CREATE INDEX IF NOT EXISTS idx_todos_list ON todos(list_id);
 CREATE INDEX IF NOT EXISTS idx_todos_list_position ON todos(list_id, position);
+CREATE INDEX IF NOT EXISTS idx_todos_created_at ON todos(created_at);
 
 -- List members table for sharing/permission management
 CREATE TABLE IF NOT EXISTS list_members (
