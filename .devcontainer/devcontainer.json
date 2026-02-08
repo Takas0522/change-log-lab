@@ -9,7 +9,8 @@
 		"ghcr.io/jlaundry/devcontainer-features/azure-functions-core-tools:1": {},
 		"ghcr.io/devcontainers-extra/features/angular-cli:2": {},
         "ghcr.io/devcontainers-extra/features/node-asdf:0": {},
-        "ghcr.io/devcontainers/features/github-cli:1": {}
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
 	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
