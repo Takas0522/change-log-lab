@@ -12,6 +12,10 @@ on:
       - 'sre-agent-lab/src/**'
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   DOTNET_VERSION: '10.0.x'
   NODE_VERSION: '22'
@@ -97,11 +101,17 @@ jobs:
           name: api-artifact
           path: api-publish
 
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ vars.AZURE_API_APP_NAME }}
-          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
           package: api-publish
 
   deploy-web:
@@ -117,14 +127,20 @@ jobs:
           name: web-artifact
           path: web-publish
 
-      - name: Deploy to Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@v1
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          action: upload
-          app_location: web-publish/web/browser
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-  seed-database:
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_WEB_APP_NAME }}
+          package: web-publish/web/browser
+
+  seed_database:
     name: Seed Database
     needs: [deploy-api]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
