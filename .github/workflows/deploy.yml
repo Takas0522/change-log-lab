@@ -138,7 +138,7 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ vars.AZURE_WEB_APP_NAME }}
-          package: web-publish/web/browser
+          package: web-publish
 
   seed_database:
     name: Seed Database
