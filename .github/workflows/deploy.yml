@@ -41,12 +41,12 @@ jobs:
         working-directory: sre-agent-lab/src/api
 
       - name: Publish
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         run: dotnet publish --no-build -c Release -o ./publish
         working-directory: sre-agent-lab/src/api
 
       - name: Upload API artifact
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
         with:
           name: api-artifact
@@ -82,7 +82,7 @@ jobs:
         working-directory: sre-agent-lab/src/web
 
       - name: Upload Web artifact
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
         with:
           name: web-artifact
@@ -91,7 +91,7 @@ jobs:
   deploy-api:
     name: Deploy API
     needs: [build-api, build-web]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -117,7 +117,7 @@ jobs:
   deploy-web:
     name: Deploy Web
     needs: [build-api, build-web]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -143,7 +143,7 @@ jobs:
   seed_database:
     name: Seed Database
     needs: [deploy-api]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     environment: production
     steps:
