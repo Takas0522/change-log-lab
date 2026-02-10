@@ -1,0 +1,23 @@
+{
+  "name": "SRE Agent Lab",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/sre-agent-lab",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "forwardPorts": [4200, 5000, 5432],
+  "postCreateCommand": "bash .devcontainer/setup-database.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "Angular.ng-template",
+        "humao.rest-client"
+      ]
+    }
+  }
+}

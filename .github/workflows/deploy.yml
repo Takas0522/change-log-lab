@@ -1,0 +1,149 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sre-agent-lab/src/**'
+      - 'sre-agent-lab/.github/workflows/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'sre-agent-lab/src/**'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  NODE_VERSION: '22'
+
+jobs:
+  build-api:
+    name: Build API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: sre-agent-lab/src/api
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+        working-directory: sre-agent-lab/src/api
+
+      - name: Publish
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: dotnet publish --no-build -c Release -o ./publish
+        working-directory: sre-agent-lab/src/api
+
+      - name: Upload API artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-artifact
+          path: sre-agent-lab/src/api/publish
+
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: sre-agent-lab/src/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: sre-agent-lab/src/web
+
+      - name: Inject App Insights connection string
+        if: env.APP_INSIGHTS_CS != ''
+        run: |
+          sed -i "s|connectionString: ''|connectionString: '${{ secrets.APPINSIGHTS_CONNECTION_STRING }}'|" src/environments/environment.ts
+        working-directory: sre-agent-lab/src/web
+        env:
+          APP_INSIGHTS_CS: ${{ secrets.APPINSIGHTS_CONNECTION_STRING }}
+
+      - name: Build
+        run: npm run build -- --configuration=production
+        working-directory: sre-agent-lab/src/web
+
+      - name: Upload Web artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-artifact
+          path: sre-agent-lab/src/web/dist
+
+  deploy-api:
+    name: Deploy API
+    needs: [build-api, build-web]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Download API artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-artifact
+          path: api-publish
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_API_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
+          package: api-publish
+
+  deploy-web:
+    name: Deploy Web
+    needs: [build-api, build-web]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Download Web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-artifact
+          path: web-publish
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+          app_location: web-publish/web/browser
+
+  seed-database:
+    name: Seed Database
+    needs: [deploy-api]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Apply schema
+        run: psql "${{ secrets.DATABASE_URL }}" -f sre-agent-lab/src/api/db/schema.sql
+
+      - name: Inject seed password hash
+        run: |
+          sed -i "s|__SEED_PASSWORD_HASH__|${{ secrets.SEED_PASSWORD_HASH }}|g" sre-agent-lab/src/api/db/seed.sql
+
+      - name: Load seed data
+        run: psql "${{ secrets.DATABASE_URL }}" -f sre-agent-lab/src/api/db/seed.sql

@@ -1,0 +1,10 @@
+# Build outputs
+src/api/bin/
+src/api/obj/
+src/web/dist/
+src/web/node_modules/
+src/web/.angular/
+
+# Local secrets — do NOT commit
+src/api/appsettings.Local.json
+src/web/src/environments/environment.local.ts
