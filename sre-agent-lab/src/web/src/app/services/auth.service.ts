@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { catchError, tap } from 'rxjs';
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly API_URL = '/api/auth';
+  private readonly API_URL = `${environment.apiBaseUrl}/api/auth`;
 
   private readonly tokenSignal = signal<string | null>(this.getStoredToken());
   private readonly userSignal = signal<User | null>(this.getStoredUser());

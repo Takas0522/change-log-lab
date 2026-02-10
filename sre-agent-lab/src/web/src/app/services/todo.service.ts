@@ -2,13 +2,14 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { tap } from 'rxjs';
 import { TodoItem, CreateTodoRequest, UpdateTodoRequest, TodoFilter } from '../models';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TodoService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = '/api/todos';
+  private readonly API_URL = `${environment.apiBaseUrl}/api/todos`;
 
   private readonly todosSignal = signal<TodoItem[]>([]);
   readonly todos = this.todosSignal.asReadonly();

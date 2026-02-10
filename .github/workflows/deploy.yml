@@ -77,6 +77,12 @@ jobs:
         env:
           APP_INSIGHTS_CS: ${{ secrets.APPINSIGHTS_CONNECTION_STRING }}
 
+      - name: Inject API base URL
+        if: vars.AZURE_API_BASE_URL != ''
+        run: |
+          sed -i "s|apiBaseUrl: ''|apiBaseUrl: '${{ vars.AZURE_API_BASE_URL }}'|" src/environments/environment.ts
+        working-directory: sre-agent-lab/src/web
+
       - name: Build
         run: npm run build -- --configuration=production
         working-directory: sre-agent-lab/src/web

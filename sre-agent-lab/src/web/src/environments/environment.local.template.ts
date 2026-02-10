@@ -2,6 +2,7 @@
 // environment.local.ts is git-ignored and will NOT be committed.
 export const environment = {
   production: false,
+  apiBaseUrl: '',
   appInsights: {
     connectionString: '<YOUR_APPLICATION_INSIGHTS_CONNECTION_STRING>'
   }
