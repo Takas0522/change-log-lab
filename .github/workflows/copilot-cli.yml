@@ -1,228 +1,228 @@
-# name: Issue Answer
+name: Issue Answer
 
-# on:
-#   workflow_dispatch:
-#   issues:
-#     types: [opened]
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
 
-# permissions:
-#   contents: read
-#   issues: write
+permissions:
+  contents: read
+  issues: write
 
-# jobs:
-#   issue-analysis:
-#     if: github.event_name == 'issues'
-#     runs-on: ubuntu-latest
+jobs:
+  issue-analysis:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
     
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-#       - name: Install Dependencies
-#         run: |
-#           sudo apt-get update
-#           sudo apt-get install -y jq curl
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
 
-#       - name: Install GitHub Copilot CLI
-#         run: |
-#           curl -fsSL https://gh.io/copilot-install | bash
-#           # sudo rm -f /usr/bin/gh
+      - name: Install GitHub Copilot CLI
+        run: |
+          curl -fsSL https://gh.io/copilot-install | bash
+          # sudo rm -f /usr/bin/gh
 
-#       - name: Get Issue Content
-#         id: issue-content
-#         run: |
-#           ISSUE_TITLE="${{ github.event.issue.title }}"
-#           ISSUE_BODY="${{ github.event.issue.body }}"
-#           ISSUE_NUMBER="${{ github.event.issue.number }}"
+      - name: Get Issue Content
+        id: issue-content
+        run: |
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
           
-#           # Use heredoc format for multiline strings in GitHub Output
-#           {
-#             echo "issue-title=${ISSUE_TITLE}"
-#             echo "issue-number=${ISSUE_NUMBER}"
-#             echo "issue-body<<EOF"
-#             echo "${ISSUE_BODY}"
-#             echo "EOF"
-#           } >> $GITHUB_OUTPUT
+          # Use heredoc format for multiline strings in GitHub Output
+          {
+            echo "issue-title=${ISSUE_TITLE}"
+            echo "issue-number=${ISSUE_NUMBER}"
+            echo "issue-body<<EOF"
+            echo "${ISSUE_BODY}"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
           
-#           # Extract URLs from markdown links and create a cleaner format
-#           PROCESSED_BODY="${ISSUE_BODY}"
-#           echo "Debug: Original body:"
-#           echo "${PROCESSED_BODY}"
+          # Extract URLs from markdown links and create a cleaner format
+          PROCESSED_BODY="${ISSUE_BODY}"
+          echo "Debug: Original body:"
+          echo "${PROCESSED_BODY}"
           
-#           # Extract GitHub attachment URLs and convert to plain text
-#           ATTACHMENT_URLS=$(echo "${ISSUE_BODY}" | grep -oE '\[([^\]]+)\]\((https://github\.com/user-attachments/files/[^)]+)\)' | sed -E 's/\[([^\]]+)\]\(([^)]+)\)/ファイル: \1\nURL: \2/g' || echo "")
-#           echo "Debug: Attachment URLs:"
-#           echo "${ATTACHMENT_URLS}"
+          # Extract GitHub attachment URLs and convert to plain text
+          ATTACHMENT_URLS=$(echo "${ISSUE_BODY}" | grep -oE '\[([^\]]+)\]\((https://github\.com/user-attachments/files/[^)]+)\)' | sed -E 's/\[([^\]]+)\]\(([^)]+)\)/ファイル: \1\nURL: \2/g' || echo "")
+          echo "Debug: Attachment URLs:"
+          echo "${ATTACHMENT_URLS}"
 
-#           # Replace markdown links with plain text in the body
-#           PROCESSED_BODY=$(echo "${ISSUE_BODY}" | sed -E 's/\[([^\]]+)\]\(https:\/\/github\.com\/user-attachments\/files\/[^)]+\)/添付ファイル: \1/g')
-#           echo "Debug: Processed body:"
-#           echo "${PROCESSED_BODY}"
+          # Replace markdown links with plain text in the body
+          PROCESSED_BODY=$(echo "${ISSUE_BODY}" | sed -E 's/\[([^\]]+)\]\(https:\/\/github\.com\/user-attachments\/files\/[^)]+\)/添付ファイル: \1/g')
+          echo "Debug: Processed body:"
+          echo "${PROCESSED_BODY}"
           
-#           # Create prompt for Copilot CLI using heredoc for multiline strings
-#           if [ -n "$ATTACHMENT_URLS" ]; then
-#             {
-#               echo "copilot-prompt<<EOF"
-#               echo "以下のIssueについて分析し、解決策や回答を提供してください。"
-#               echo ""
-#               echo "タイトル: ${ISSUE_TITLE}"
-#               echo ""
-#               echo "内容: ${PROCESSED_BODY}"
-#               echo ""
-#               echo "ISSUE番号: ${ISSUE_NUMBER}"
-#               echo ""
-#               echo "添付ファイル:"
-#               echo "${ATTACHMENT_URLS}"
-#               echo ""
-#               echo "これらのファイルURLから内容を取得して分析に含めてください。"
-#               echo "EOF"
-#             } >> $GITHUB_OUTPUT
-#           else
-#             {
-#               echo "copilot-prompt<<EOF"
-#               echo "以下のIssueについて分析し、解決策や回答を提供してください。"
-#               echo ""
-#               echo "タイトル: ${ISSUE_TITLE}"
-#               echo ""
-#               echo "ISSUE番号: ${ISSUE_NUMBER}"
-#               echo ""
-#               echo "内容: ${PROCESSED_BODY}"
-#               echo "EOF"
-#             } >> $GITHUB_OUTPUT
-#           fi
+          # Create prompt for Copilot CLI using heredoc for multiline strings
+          if [ -n "$ATTACHMENT_URLS" ]; then
+            {
+              echo "copilot-prompt<<EOF"
+              echo "以下のIssueについて分析し、解決策や回答を提供してください。"
+              echo ""
+              echo "タイトル: ${ISSUE_TITLE}"
+              echo ""
+              echo "内容: ${PROCESSED_BODY}"
+              echo ""
+              echo "ISSUE番号: ${ISSUE_NUMBER}"
+              echo ""
+              echo "添付ファイル:"
+              echo "${ATTACHMENT_URLS}"
+              echo ""
+              echo "これらのファイルURLから内容を取得して分析に含めてください。"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          else
+            {
+              echo "copilot-prompt<<EOF"
+              echo "以下のIssueについて分析し、解決策や回答を提供してください。"
+              echo ""
+              echo "タイトル: ${ISSUE_TITLE}"
+              echo ""
+              echo "ISSUE番号: ${ISSUE_NUMBER}"
+              echo ""
+              echo "内容: ${PROCESSED_BODY}"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          fi
 
-#       - name: Run Copilot CLI Analysis
-#         id: copilot-analysis
-#         env:
-#           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         run: |
-#           PROMPT="${{ steps.issue-content.outputs.copilot-prompt }}"
+      - name: Run Copilot CLI Analysis
+        id: copilot-analysis
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PROMPT="${{ steps.issue-content.outputs.copilot-prompt }}"
           
-#           echo "Running Copilot CLI analysis..."
-#           echo "Prompt length: ${#PROMPT} characters"
-#           echo "--- Prompt Content (first 500 chars) ---"
-#           echo "${PROMPT:0:500}..."
-#           echo "--- End Prompt Preview ---"
+          echo "Running Copilot CLI analysis..."
+          echo "Prompt length: ${#PROMPT} characters"
+          echo "--- Prompt Content (first 500 chars) ---"
+          echo "${PROMPT:0:500}..."
+          echo "--- End Prompt Preview ---"
           
-#           # Run Copilot CLI with error handling and better output capture
-#           COPILOT_RESULT=""
-#           echo "Executing: copilot with the prepared prompt"
+          # Run Copilot CLI with error handling and better output capture
+          COPILOT_RESULT=""
+          echo "Executing: copilot with the prepared prompt"
           
-#           # Use a temporary file to capture output safely
-#           TEMP_OUTPUT=$(mktemp)
+          # Use a temporary file to capture output safely
+          TEMP_OUTPUT=$(mktemp)
           
-#           if timeout 600 copilot --agent=sql-performance-review -p "$PROMPT" --allow-all-tools > "$TEMP_OUTPUT" 2>&1; then
-#             COPILOT_RESULT=$(cat "$TEMP_OUTPUT")
-#             echo "Copilot CLI executed successfully"
-#             echo "Result length: ${#COPILOT_RESULT} characters"
-#           else
-#             EXIT_CODE=$?
-#             COPILOT_ERROR=$(cat "$TEMP_OUTPUT")
-#             echo "Copilot CLI encountered an error (exit code: $EXIT_CODE)"
-#             echo "Error output: $COPILOT_ERROR"
-#             COPILOT_RESULT="申し訳ございませんが、分析中にエラーが発生しました。
+          if timeout 600 copilot --agent=research-agent -p "$PROMPT" --allow-all-tools > "$TEMP_OUTPUT" 2>&1; then
+            COPILOT_RESULT=$(cat "$TEMP_OUTPUT")
+            echo "Copilot CLI executed successfully"
+            echo "Result length: ${#COPILOT_RESULT} characters"
+          else
+            EXIT_CODE=$?
+            COPILOT_ERROR=$(cat "$TEMP_OUTPUT")
+            echo "Copilot CLI encountered an error (exit code: $EXIT_CODE)"
+            echo "Error output: $COPILOT_ERROR"
+            COPILOT_RESULT="申し訳ございませんが、分析中にエラーが発生しました。
 
-#             エラー詳細: 
-#             $COPILOT_ERROR
+            エラー詳細: 
+            $COPILOT_ERROR
 
-#             手動での確認をお願いいたします。問題が継続する場合は、添付ファイルを直接確認してください。"
-#           fi
+            手動での確認をお願いいたします。問題が継続する場合は、添付ファイルを直接確認してください。"
+          fi
           
-#           # Clean up temporary file
-#           rm -f "$TEMP_OUTPUT"
+          # Clean up temporary file
+          rm -f "$TEMP_OUTPUT"
           
-#           # Use heredoc format for multiline output with safe approach
-#           # Write directly to file to avoid shell interpretation
-#           {
-#             echo "result<<EOF"
-#             printf '%s\n' "$COPILOT_RESULT"
-#             echo "EOF"
-#           } >> $GITHUB_OUTPUT
-#       ## gh実行も込みでお願いしたら不要だわ
-#       # - name: Post Comment to Issue
-#       #   env:
-#       #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
-#       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       #     REPO_OWNER: ${{ github.repository_owner }}
-#       #     REPO_NAME: ${{ github.event.repository.name }}
-#       #   run: |
-#       #     ISSUE_NUMBER="${{ steps.issue-content.outputs.issue-number }}"
+          # Use heredoc format for multiline output with safe approach
+          # Write directly to file to avoid shell interpretation
+          {
+            echo "result<<EOF"
+            printf '%s\n' "$COPILOT_RESULT"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+      ## gh実行も込みでお願いしたら不要だわ
+      # - name: Post Comment to Issue
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     REPO_OWNER: ${{ github.repository_owner }}
+      #     REPO_NAME: ${{ github.event.repository.name }}
+      #   run: |
+      #     ISSUE_NUMBER="${{ steps.issue-content.outputs.issue-number }}"
           
-#       #     # Create a safe temporary file for the result
-#       #     TEMP_RESULT=$(mktemp)
+      #     # Create a safe temporary file for the result
+      #     TEMP_RESULT=$(mktemp)
           
-#       #     # Write the copilot result to temporary file to avoid shell interpretation
-#       #     cat << 'RESULT_EOF' > "$TEMP_RESULT"
-#       #     ${{ steps.copilot-analysis.outputs.result }}
-#       #     RESULT_EOF
+      #     # Write the copilot result to temporary file to avoid shell interpretation
+      #     cat << 'RESULT_EOF' > "$TEMP_RESULT"
+      #     ${{ steps.copilot-analysis.outputs.result }}
+      #     RESULT_EOF
           
-#       #     # Create comment body with template
-#       #     TEMP_COMMENT=$(mktemp)
-#       #     cat << 'COMMENT_EOF' > "$TEMP_COMMENT"
-#       #     ## 🤖 Copilot CLI による分析結果
+      #     # Create comment body with template
+      #     TEMP_COMMENT=$(mktemp)
+      #     cat << 'COMMENT_EOF' > "$TEMP_COMMENT"
+      #     ## 🤖 Copilot CLI による分析結果
 
-#       #     COMMENT_EOF
+      #     COMMENT_EOF
           
-#       #     # Append the result content
-#       #     cat "$TEMP_RESULT" >> "$TEMP_COMMENT"
+      #     # Append the result content
+      #     cat "$TEMP_RESULT" >> "$TEMP_COMMENT"
           
-#       #     # Append the footer
-#       #     cat << 'FOOTER_EOF' >> "$TEMP_COMMENT"
+      #     # Append the footer
+      #     cat << 'FOOTER_EOF' >> "$TEMP_COMMENT"
 
-#       #     ---
-#       #     *この回答は GitHub Copilot CLI により自動生成されました。添付ファイルの URL がある場合は、Copilot CLI が自動的にアクセスして分析に含めます。*
-#       #     FOOTER_EOF
+      #     ---
+      #     *この回答は GitHub Copilot CLI により自動生成されました。添付ファイルの URL がある場合は、Copilot CLI が自動的にアクセスして分析に含めます。*
+      #     FOOTER_EOF
           
-#       #     # Escape for JSON using jq
-#       #     ESCAPED_COMMENT=$(jq -Rs . < "$TEMP_COMMENT")
+      #     # Escape for JSON using jq
+      #     ESCAPED_COMMENT=$(jq -Rs . < "$TEMP_COMMENT")
           
-#       #     # Clean up temporary files
-#       #     rm -f "$TEMP_RESULT" "$TEMP_COMMENT"
+      #     # Clean up temporary files
+      #     rm -f "$TEMP_RESULT" "$TEMP_COMMENT"
           
-#       #     # Post comment using GitHub REST API
-#       #     curl -X POST \
-#       #       -H "Authorization: token $GITHUB_TOKEN" \
-#       #       -H "Accept: application/vnd.github.v3+json" \
-#       #       -H "Content-Type: application/json" \
-#       #       "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues/${ISSUE_NUMBER}/comments" \
-#       #       -d "{\"body\": ${ESCAPED_COMMENT}}"
+      #     # Post comment using GitHub REST API
+      #     curl -X POST \
+      #       -H "Authorization: token $GITHUB_TOKEN" \
+      #       -H "Accept: application/vnd.github.v3+json" \
+      #       -H "Content-Type: application/json" \
+      #       "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues/${ISSUE_NUMBER}/comments" \
+      #       -d "{\"body\": ${ESCAPED_COMMENT}}"
 
-#   copilot-cli-test:
-#     if: github.event_name == 'workflow_dispatch'
-#     runs-on: ubuntu-latest
+  copilot-cli-test:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
     
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-#       - name: Install Dependencies
-#         run: |
-#           sudo apt-get update
-#           sudo apt-get install -y jq curl
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
       
-#       - name: Install GitHub Copilot CLI
-#         env:
-#           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-#         run: |
-#           curl -fsSL https://gh.io/copilot-install | bash
-#           sudo rm -f /usr/bin/gh
+      - name: Install GitHub Copilot CLI
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          curl -fsSL https://gh.io/copilot-install | bash
+          sudo rm -f /usr/bin/gh
 
-#           echo "Running GitHub Copilot CLI with 'Hello' input..."
-#           copilot -p "Hello" --allow-all-tools
+          echo "Running GitHub Copilot CLI with 'Hello' input..."
+          copilot -p "Hello" --allow-all-tools
       
-#       # - name: Setup GitHub Copilot CLI with PAT
-#       #   env:
-#       #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-#       #   run: |
-#       #     echo "Setting up GitHub Copilot CLI authentication..."
-#       #     # Authenticate with GitHub using PAT
-#       #     # gh auth login --with-token <<< "$GITHUB_TOKEN"
+      # - name: Setup GitHub Copilot CLI with PAT
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      #   run: |
+      #     echo "Setting up GitHub Copilot CLI authentication..."
+      #     # Authenticate with GitHub using PAT
+      #     # gh auth login --with-token <<< "$GITHUB_TOKEN"
           
-#       #     # Verify authentication
-#       #     # gh auth status
+      #     # Verify authentication
+      #     # gh auth status
       
-#       # - name: Run GitHub Copilot CLI
-#       #   run: |
-#       #     echo "Running GitHub Copilot CLI with 'Hello' input..."
-#       #     copilot -p "Hello" --allow-all-tools
+      # - name: Run GitHub Copilot CLI
+      #   run: |
+      #     echo "Running GitHub Copilot CLI with 'Hello' input..."
+      #     copilot -p "Hello" --allow-all-tools
