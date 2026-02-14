@@ -115,6 +115,7 @@ jobs:
           if timeout 600 copilot --agent=research-agent -p "$PROMPT" --allow-all-tools > "$TEMP_OUTPUT" 2>&1; then
             COPILOT_RESULT=$(cat "$TEMP_OUTPUT")
             echo "Copilot CLI executed successfully"
+            echo ${COPILOT_RESULT:0:500} # Print first 500 chars of the result for debugging
             echo "Result length: ${#COPILOT_RESULT} characters"
           else
             EXIT_CODE=$?
