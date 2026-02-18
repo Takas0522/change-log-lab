@@ -1,11 +1,12 @@
-import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ListService } from '../../services/list.service';
 import { TodoService } from '../../services/todo.service';
 import { UserService } from '../../services/user.service';
+import { LabelService } from '../../services/label.service';
 // import { RealtimeService } from '../../services/realtime.service';
-import { ListModel, CreateTodoRequest, UserProfile } from '../../models';
+import { ListModel, CreateTodoRequest, UserProfile, LabelModel, TodoStatus, TodoFilterOptions } from '../../models';
 
 @Component({
   selector: 'app-list-detail',
@@ -36,7 +37,7 @@ import { ListModel, CreateTodoRequest, UserProfile } from '../../models';
 
       <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div class="px-4 py-6 sm:px-0">
-          @if (list()?.userRole === 'owner') {
+          @if (list()?.userRole === 'owner' || list()?.userRole === 'editor') {
             <div class="mb-6 flex space-x-3">
               <button
                 (click)="showTodoForm.set(!showTodoForm())"
@@ -44,11 +45,19 @@ import { ListModel, CreateTodoRequest, UserProfile } from '../../models';
               >
                 + New Todo
               </button>
+              @if (list()?.userRole === 'owner') {
+                <button
+                  (click)="showInviteForm.set(!showInviteForm())"
+                  class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                >
+                  Invite User
+                </button>
+              }
               <button
-                (click)="showInviteForm.set(!showInviteForm())"
-                class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                (click)="navigateToLabels()"
+                class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
               >
-                Invite User
+                Manage Labels
               </button>
             </div>
           }
@@ -189,6 +198,28 @@ import { ListModel, CreateTodoRequest, UserProfile } from '../../models';
                           @if (todo.description) {
                             <p class="text-sm text-gray-500 mt-1">{{ todo.description }}</p>
                           }
+                          <div class="flex items-center gap-2 mt-2">
+                            @if (todo.status) {
+                              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                                    [class.bg-gray-100]="todo.status === 'not_started'"
+                                    [class.text-gray-800]="todo.status === 'not_started'"
+                                    [class.bg-blue-100]="todo.status === 'in_progress'"
+                                    [class.text-blue-800]="todo.status === 'in_progress'"
+                                    [class.bg-green-100]="todo.status === 'completed'"
+                                    [class.text-green-800]="todo.status === 'completed'"
+                                    [class.bg-red-100]="todo.status === 'abandoned'"
+                                    [class.text-red-800]="todo.status === 'abandoned'">
+                                {{ getStatusLabel(todo.status) }}
+                              </span>
+                            }
+                            @for (label of todo.labels; track label.id) {
+                              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-white"
+                                    [style.background-color]="label.color">
+                                {{ label.name }}
+                              </span>
+                            }
+                          </div>
+                        </div>
                         </div>
                       </div>
                       @if (list()?.userRole === 'owner') {
@@ -216,6 +247,7 @@ export class ListDetailComponent implements OnInit, OnDestroy {
   private readonly listService = inject(ListService);
   private readonly todoService = inject(TodoService);
   private readonly userService = inject(UserService);
+  private readonly labelService = inject(LabelService);
   // private readonly realtimeService = inject(RealtimeService);
   
   readonly list = signal<ListModel | null>(null);
@@ -225,11 +257,19 @@ export class ListDetailComponent implements OnInit, OnDestroy {
   readonly showInviteForm = signal(false);
   readonly searchResults = signal<UserProfile[]>([]);
   readonly selectedUser = signal<UserProfile | null>(null);
+  readonly labels = signal<LabelModel[]>([]);
   
   newTodoTitle = '';
   newTodoDescription = '';
   searchQuery = '';
   listId = '';
+
+  readonly statusOptions: { value: TodoStatus; label: string }[] = [
+    { value: 'not_started', label: '未着手' },
+    { value: 'in_progress', label: '着手中' },
+    { value: 'completed', label: '完了' },
+    { value: 'abandoned', label: '放棄' }
+  ];
 
   ngOnInit() {
     this.listId = this.route.snapshot.paramMap.get('id') || '';
@@ -338,5 +378,14 @@ export class ListDetailComponent implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.searchResults.set([]);
     this.selectedUser.set(null);
+  }
+
+  navigateToLabels() {
+    this.router.navigate(['/lists', this.listId, 'labels']);
+  }
+
+  getStatusLabel(status: TodoStatus): string {
+    const statusOption = this.statusOptions.find(opt => opt.value === status);
+    return statusOption ? statusOption.label : status;
   }
 }

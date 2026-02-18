@@ -59,7 +59,13 @@ public class TodosController : ControllerBase
 
     // GET: api/lists/{listId}/todos
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TodoResponse>>> GetTodos(Guid listId)
+    public async Task<ActionResult<IEnumerable<TodoResponse>>> GetTodos(
+        Guid listId, 
+        [FromQuery] string? status = null,
+        [FromQuery] Guid? labelId = null,
+        [FromQuery] string? search = null,
+        [FromQuery] DateTime? dueDateFrom = null,
+        [FromQuery] DateTime? dueDateTo = null)
     {
         var userId = GetUserId();
         var (hasAccess, _) = await CheckListAccess(listId, userId);
@@ -69,8 +75,38 @@ public class TodosController : ControllerBase
             return Forbid();
         }
 
-        var todos = await _context.Todos
-            .Where(t => t.ListId == listId)
+        var query = _context.Todos
+            .Include(t => t.TodoLabels)
+                .ThenInclude(tl => tl.Label)
+            .Where(t => t.ListId == listId);
+
+        // Apply filters
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(t => t.Status == status);
+        }
+
+        if (labelId.HasValue)
+        {
+            query = query.Where(t => t.TodoLabels.Any(tl => tl.LabelId == labelId.Value));
+        }
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(t => t.Title.Contains(search) || (t.Description != null && t.Description.Contains(search)));
+        }
+
+        if (dueDateFrom.HasValue)
+        {
+            query = query.Where(t => t.DueDate >= dueDateFrom.Value);
+        }
+
+        if (dueDateTo.HasValue)
+        {
+            query = query.Where(t => t.DueDate <= dueDateTo.Value);
+        }
+
+        var todos = await query
             .OrderBy(t => t.Position)
             .Select(t => new TodoResponse(
                 t.Id,
@@ -78,10 +114,19 @@ public class TodosController : ControllerBase
                 t.Title,
                 t.Description,
                 t.IsCompleted,
+                t.Status,
                 t.DueDate,
                 t.Position,
                 t.CreatedAt,
-                t.UpdatedAt
+                t.UpdatedAt,
+                t.TodoLabels.Select(tl => new LabelDto(
+                    tl.Label.Id,
+                    tl.Label.ListId,
+                    tl.Label.Name,
+                    tl.Label.Color,
+                    tl.Label.CreatedAt,
+                    tl.Label.UpdatedAt
+                )).ToList()
             ))
             .ToListAsync();
 
@@ -101,6 +146,8 @@ public class TodosController : ControllerBase
         }
 
         var todo = await _context.Todos
+            .Include(t => t.TodoLabels)
+                .ThenInclude(tl => tl.Label)
             .FirstOrDefaultAsync(t => t.Id == id && t.ListId == listId);
 
         if (todo == null)
@@ -114,10 +161,19 @@ public class TodosController : ControllerBase
             todo.Title,
             todo.Description,
             todo.IsCompleted,
+            todo.Status,
             todo.DueDate,
             todo.Position,
             todo.CreatedAt,
-            todo.UpdatedAt
+            todo.UpdatedAt,
+            todo.TodoLabels.Select(tl => new LabelDto(
+                tl.Label.Id,
+                tl.Label.ListId,
+                tl.Label.Name,
+                tl.Label.Color,
+                tl.Label.CreatedAt,
+                tl.Label.UpdatedAt
+            )).ToList()
         );
 
         return Ok(response);
@@ -151,6 +207,7 @@ public class TodosController : ControllerBase
             ListId = listId,
             Title = request.Title,
             Description = request.Description,
+            Status = request.Status ?? "not_started",
             DueDate = request.DueDate,
             Position = position,
             IsCompleted = false
@@ -168,10 +225,12 @@ public class TodosController : ControllerBase
             todo.Title,
             todo.Description,
             todo.IsCompleted,
+            todo.Status,
             todo.DueDate,
             todo.Position,
             todo.CreatedAt,
-            todo.UpdatedAt
+            todo.UpdatedAt,
+            new List<LabelDto>()
         );
 
         return CreatedAtAction(nameof(GetTodo), new { listId, id = todo.Id }, response);
@@ -190,6 +249,8 @@ public class TodosController : ControllerBase
         }
 
         var todo = await _context.Todos
+            .Include(t => t.TodoLabels)
+                .ThenInclude(tl => tl.Label)
             .FirstOrDefaultAsync(t => t.Id == id && t.ListId == listId);
 
         if (todo == null)
@@ -210,6 +271,11 @@ public class TodosController : ControllerBase
         if (request.IsCompleted.HasValue)
         {
             todo.IsCompleted = request.IsCompleted.Value;
+        }
+
+        if (request.Status != null)
+        {
+            todo.Status = request.Status;
         }
 
         if (request.DueDate.HasValue)
@@ -233,10 +299,19 @@ public class TodosController : ControllerBase
             todo.Title,
             todo.Description,
             todo.IsCompleted,
+            todo.Status,
             todo.DueDate,
             todo.Position,
             todo.CreatedAt,
-            todo.UpdatedAt
+            todo.UpdatedAt,
+            todo.TodoLabels.Select(tl => new LabelDto(
+                tl.Label.Id,
+                tl.Label.ListId,
+                tl.Label.Name,
+                tl.Label.Color,
+                tl.Label.CreatedAt,
+                tl.Label.UpdatedAt
+            )).ToList()
         );
 
         return Ok(response);

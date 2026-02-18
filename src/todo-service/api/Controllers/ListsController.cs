@@ -79,6 +79,8 @@ public class ListsController : ControllerBase
 
         var list = await _context.Lists
             .Include(l => l.Todos.OrderBy(t => t.Position))
+                .ThenInclude(t => t.TodoLabels)
+                    .ThenInclude(tl => tl.Label)
             .Include(l => l.Members)
             .FirstOrDefaultAsync(l => l.Id == id);
 
@@ -103,10 +105,19 @@ public class ListsController : ControllerBase
             t.Title,
             t.Description,
             t.IsCompleted,
+            t.Status,
             t.DueDate,
             t.Position,
             t.CreatedAt,
-            t.UpdatedAt
+            t.UpdatedAt,
+            t.TodoLabels.Select(tl => new LabelDto(
+                tl.Label.Id,
+                tl.Label.ListId,
+                tl.Label.Name,
+                tl.Label.Color,
+                tl.Label.CreatedAt,
+                tl.Label.UpdatedAt
+            )).ToList()
         )).ToList();
 
         var response = new ListDetailResponse(

@@ -36,6 +36,7 @@ public record ListDetailResponse(
 public record CreateTodoRequest(
     string Title,
     string? Description,
+    string? Status,
     DateTime? DueDate,
     int? Position
 );
@@ -44,6 +45,7 @@ public record UpdateTodoRequest(
     string? Title,
     string? Description,
     bool? IsCompleted,
+    string? Status,
     DateTime? DueDate,
     int? Position
 );
@@ -54,10 +56,12 @@ public record TodoResponse(
     string Title,
     string? Description,
     bool IsCompleted,
+    string Status,
     DateTime? DueDate,
     int Position,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    List<LabelDto> Labels
 );
 
 // List Member DTOs
