@@ -1,0 +1,119 @@
+<div class="label-manager">
+  <div class="header">
+    <button (click)="goBack()" class="back-button">← Back to List</button>
+    <h1>Label Management</h1>
+    <button (click)="openCreateForm()" class="create-button">+ New Label</button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Loading labels...</div>
+  }
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (!loading() && labels().length === 0) {
+    <div class="empty-state">
+      <p>No labels yet. Create your first label to organize your todos!</p>
+    </div>
+  }
+
+  <div class="labels-grid">
+    @for (label of labels(); track label.id) {
+      <div class="label-card">
+        <div class="label-preview">
+          <span class="label-badge" [style.background-color]="label.color">
+            {{ label.name }}
+          </span>
+        </div>
+        <div class="label-info">
+          <div class="label-name">{{ label.name }}</div>
+          <div class="label-color">{{ label.color }}</div>
+        </div>
+        <div class="label-actions">
+          <button (click)="openEditForm(label)" class="edit-button">Edit</button>
+          <button (click)="deleteLabel(label)" class="delete-button">Delete</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Create/Edit Form Modal -->
+  @if (showCreateForm()) {
+    <div class="modal-overlay" (click)="closeForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ editingLabel() ? 'Edit Label' : 'Create Label' }}</h2>
+          <button (click)="closeForm()" class="close-button">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="labelName">Label Name</label>
+            <input 
+              type="text" 
+              id="labelName"
+              [(ngModel)]="formName"
+              placeholder="Enter label name"
+              maxlength="100"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Color</label>
+            <div class="color-palette">
+              @for (color of colorPalette; track color) {
+                <button
+                  class="color-swatch"
+                  [class.selected]="formColor() === color"
+                  [style.background-color]="color"
+                  (click)="selectColor(color)"
+                  type="button"
+                >
+                  @if (formColor() === color) {
+                    <span class="check-mark">✓</span>
+                  }
+                </button>
+              }
+            </div>
+            
+            <div class="color-custom">
+              <label for="customColor">Custom Color:</label>
+              <input 
+                type="color" 
+                id="customColor"
+                [(ngModel)]="formColor"
+                class="color-picker"
+              />
+              <input 
+                type="text" 
+                [(ngModel)]="formColor"
+                placeholder="#000000"
+                maxlength="7"
+                class="color-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Preview</label>
+            <div class="preview">
+              <span class="label-badge" [style.background-color]="formColor()">
+                {{ formName() || 'Label Preview' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button (click)="closeForm()" class="cancel-button">Cancel</button>
+          <button (click)="saveLabel()" class="save-button">
+            {{ editingLabel() ? 'Update' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
