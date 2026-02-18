@@ -13,6 +13,8 @@ public class TodoDbContext : DbContext
     public DbSet<Todo> Todos { get; set; } = null!;
     public DbSet<ListMember> ListMembers { get; set; } = null!;
     public DbSet<OutboxEvent> OutboxEvents { get; set; } = null!;
+    public DbSet<Label> Labels { get; set; } = null!;
+    public DbSet<TodoLabel> TodoLabels { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,6 +56,7 @@ public class TodoDbContext : DbContext
             entity.Property(e => e.Title).HasColumnName("title").IsRequired().HasMaxLength(255);
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.IsCompleted).HasColumnName("is_completed");
+            entity.Property(e => e.Status).HasColumnName("status").IsRequired().HasMaxLength(20);
             entity.Property(e => e.DueDate).HasColumnName("due_date");
             entity.Property(e => e.Position).HasColumnName("position");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
@@ -61,6 +64,7 @@ public class TodoDbContext : DbContext
 
             entity.HasIndex(e => e.ListId).HasDatabaseName("idx_todos_list");
             entity.HasIndex(e => new { e.ListId, e.Position }).HasDatabaseName("idx_todos_list_position");
+            entity.HasIndex(e => e.Status).HasDatabaseName("idx_todos_status");
         });
 
         // Configure ListMember entity
@@ -98,6 +102,56 @@ public class TodoDbContext : DbContext
 
             entity.HasIndex(e => e.EventId).HasDatabaseName("idx_outbox_events_event_id").IsUnique();
         });
+
+        // Configure Label entity
+        modelBuilder.Entity<Label>(entity =>
+        {
+            entity.ToTable("labels");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ListId).HasColumnName("list_id").IsRequired();
+            entity.Property(e => e.Name).HasColumnName("name").IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Color).HasColumnName("color").IsRequired().HasMaxLength(7);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
+            entity.HasIndex(e => e.ListId).HasDatabaseName("idx_labels_list");
+            entity.HasIndex(e => new { e.ListId, e.Name })
+                .HasDatabaseName("labels_list_id_name_key")
+                .IsUnique();
+
+            entity.HasOne(e => e.List)
+                .WithMany()
+                .HasForeignKey(e => e.ListId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure TodoLabel entity
+        modelBuilder.Entity<TodoLabel>(entity =>
+        {
+            entity.ToTable("todo_labels");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.TodoId).HasColumnName("todo_id").IsRequired();
+            entity.Property(e => e.LabelId).HasColumnName("label_id").IsRequired();
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+
+            entity.HasIndex(e => e.TodoId).HasDatabaseName("idx_todo_labels_todo");
+            entity.HasIndex(e => e.LabelId).HasDatabaseName("idx_todo_labels_label");
+            entity.HasIndex(e => new { e.TodoId, e.LabelId })
+                .HasDatabaseName("todo_labels_todo_id_label_id_key")
+                .IsUnique();
+
+            entity.HasOne(e => e.Todo)
+                .WithMany(t => t.TodoLabels)
+                .HasForeignKey(e => e.TodoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Label)
+                .WithMany(l => l.TodoLabels)
+                .HasForeignKey(e => e.LabelId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 
     public override int SaveChanges()
@@ -115,7 +169,7 @@ public class TodoDbContext : DbContext
     private void UpdateTimestamps()
     {
         var entries = ChangeTracker.Entries()
-            .Where(e => e.Entity is List || e.Entity is Todo || e.Entity is ListMember);
+            .Where(e => e.Entity is List || e.Entity is Todo || e.Entity is ListMember || e.Entity is Label);
 
         foreach (var entry in entries)
         {
@@ -138,6 +192,11 @@ public class TodoDbContext : DbContext
                     member.CreatedAt = now;
                     member.UpdatedAt = now;
                 }
+                else if (entry.Entity is Label label)
+                {
+                    label.CreatedAt = now;
+                    label.UpdatedAt = now;
+                }
             }
             else if (entry.State == EntityState.Modified)
             {
@@ -152,6 +211,10 @@ public class TodoDbContext : DbContext
                 else if (entry.Entity is ListMember member)
                 {
                     member.UpdatedAt = now;
+                }
+                else if (entry.Entity is Label label)
+                {
+                    label.UpdatedAt = now;
                 }
             }
         }
