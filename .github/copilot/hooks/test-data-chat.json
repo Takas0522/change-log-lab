@@ -1,8 +1,0 @@
-{
-  "timestamp": "2026-02-18T10:30:45.000Z",
-  "cwd": "/home/tohkawa/source/change-log-lab",
-  "sessionId": "session-test-12345",
-  "hookEventName": "UserPromptSubmit",
-  "transcript_path": "/tmp/transcript-12345.json",
-  "prompt": "Create a C# method to calculate factorial"
-}

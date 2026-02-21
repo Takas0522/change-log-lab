@@ -1,6 +1,0 @@
-/temp
-
-# Copilot Hooks
-.github/copilot/hooks/.env
-.github/copilot/hooks/*.log
-.copilot-hooks/
