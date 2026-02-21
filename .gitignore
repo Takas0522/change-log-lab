@@ -4,3 +4,6 @@
 legacy-app-demo/TodoApp/App_Data/*.db
 legacy-app-demo/TodoApp/App_Data/*.db-shm
 legacy-app-demo/TodoApp/App_Data/*.db-wal
+
+# NuGet binaries
+.nuget/nuget.exe
