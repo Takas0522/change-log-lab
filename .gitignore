@@ -1,1 +1,6 @@
 /temp
+
+# SQLite database files generated at runtime
+legacy-app-demo/TodoApp/App_Data/*.db
+legacy-app-demo/TodoApp/App_Data/*.db-shm
+legacy-app-demo/TodoApp/App_Data/*.db-wal
