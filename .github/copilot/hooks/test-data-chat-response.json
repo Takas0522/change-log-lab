@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-02-18T10:36:02.000Z",
+  "cwd": "/home/tohkawa/source/change-log-lab",
+  "sessionId": "session-test-12345",
+  "hookEventName": "PreToolUse",
+  "transcript_path": "/tmp/transcript-12345.json",
+  "tool_name": "run_terminal_command",
+  "tool_input": {
+    "command": "npm install"
+  },
+  "tool_use_id": "tool-test-11111"
+}

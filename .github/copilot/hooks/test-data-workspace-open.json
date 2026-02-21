@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-02-18T09:00:00.000Z",
+  "cwd": "/home/tohkawa/source/change-log-lab",
+  "sessionId": "session-test-12345",
+  "hookEventName": "Stop",
+  "transcript_path": "/tmp/transcript-12345.json",
+  "stop_hook_active": false
+}

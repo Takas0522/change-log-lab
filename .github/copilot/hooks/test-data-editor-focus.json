@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-02-18T10:37:00.000Z",
+  "cwd": "/home/tohkawa/source/change-log-lab",
+  "sessionId": "session-test-12345",
+  "hookEventName": "SubagentStop",
+  "transcript_path": "/tmp/transcript-12345.json",
+  "agent_id": "subagent-test-456",
+  "agent_type": "Plan",
+  "stop_hook_active": false
+}

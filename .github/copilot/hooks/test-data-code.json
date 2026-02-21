@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-02-18T10:32:15.000Z",
+  "cwd": "/home/tohkawa/source/change-log-lab",
+  "sessionId": "session-test-12345",
+  "hookEventName": "PostToolUse",
+  "transcript_path": "/tmp/transcript-12345.json",
+  "tool_name": "editFiles",
+  "tool_input": {
+    "files": ["src/auth-service/api/Controllers/AuthController.cs"]
+  },
+  "tool_use_id": "tool-test-67890",
+  "tool_response": "File edited successfully"
+}
