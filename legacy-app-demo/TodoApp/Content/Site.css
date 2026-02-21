@@ -1,0 +1,260 @@
+/* =====================================================
+   ToDo アプリケーション スタイルシート
+   ===================================================== */
+
+/* --- リセット & ベース -------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: "Meiryo", "Hiragino Kaku Gothic Pro", "MS PGothic", sans-serif;
+    font-size: 14px;
+    background: #f4f6f9;
+    color: #333;
+    line-height: 1.6;
+}
+
+a { color: #0078d4; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* --- ヘッダー ----------------------------------------- */
+header {
+    background: #0078d4;
+    color: #fff;
+    padding: 12px 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.2);
+}
+
+header h1 a {
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* --- メインコンテンツ --------------------------------- */
+main {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 16px;
+}
+
+/* --- フッター ----------------------------------------- */
+footer {
+    text-align: center;
+    padding: 16px;
+    color: #888;
+    font-size: 12px;
+    margin-top: 40px;
+}
+
+/* --- ページヘッダー ----------------------------------- */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.page-header h2 { font-size: 20px; color: #222; }
+
+/* --- ボタン ------------------------------------------- */
+.btn {
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1px solid #0078d4;
+    border-radius: 4px;
+    background: #0078d4;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: none;
+    transition: background .15s;
+}
+
+.btn:hover { background: #005fa3; text-decoration: none; color: #fff; }
+
+.btn-secondary {
+    background: #6c757d;
+    border-color: #6c757d;
+}
+.btn-secondary:hover { background: #545b62; }
+
+.btn-danger {
+    background: #dc3545;
+    border-color: #dc3545;
+}
+.btn-danger:hover { background: #b02a37; }
+
+.btn-success {
+    background: #198754;
+    border-color: #198754;
+}
+.btn-success:hover { background: #146c43; }
+
+.btn-sm { padding: 3px 10px; font-size: 12px; }
+
+input[type=submit], input[type=button] {
+    padding: 6px 14px;
+    border: 1px solid #0078d4;
+    border-radius: 4px;
+    background: #0078d4;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+/* --- フォームコントロール ----------------------------- */
+.form-control {
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #333;
+    background: #fff;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #0078d4;
+    box-shadow: 0 0 0 2px rgba(0,120,212,.25);
+}
+
+select.form-control { cursor: pointer; }
+
+textarea.form-control { resize: vertical; min-height: 80px; }
+
+/* --- フィルターバー ----------------------------------- */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    background: #fff;
+    padding: 14px 16px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    margin-bottom: 16px;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-group label { font-weight: bold; white-space: nowrap; font-size: 13px; }
+
+/* --- タスクグリッド ----------------------------------- */
+.task-grid {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+
+.task-grid th {
+    background: #e9eef5;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 13px;
+    border-bottom: 2px solid #d0d7e0;
+}
+
+.task-grid td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+.task-grid tr:last-child td { border-bottom: none; }
+.task-grid tr:hover td { background: #f8f9fc; }
+
+/* --- 優先度バッジ ------------------------------------- */
+.priority-low    { display:inline-block; padding:2px 8px; border-radius:10px; background:#e0f2e9; color:#1a6b3c; font-size:12px; }
+.priority-medium { display:inline-block; padding:2px 8px; border-radius:10px; background:#fff3cd; color:#856404; font-size:12px; }
+.priority-high   { display:inline-block; padding:2px 8px; border-radius:10px; background:#fde8ec; color:#a61c2f; font-size:12px; }
+
+/* --- ステータスバッジ --------------------------------- */
+.status-pending   { display:inline-block; padding:2px 8px; border-radius:10px; background:#dce8fb; color:#0550ae; font-size:12px; }
+.status-completed { display:inline-block; padding:2px 8px; border-radius:10px; background:#d1fae5; color:#065f46; font-size:12px; }
+
+/* --- メッセージ --------------------------------------- */
+.message-success {
+    padding: 10px 14px;
+    background: #d1fae5;
+    border: 1px solid #6ee7b7;
+    border-radius: 4px;
+    color: #065f46;
+    margin-bottom: 14px;
+}
+
+.message-error {
+    padding: 10px 14px;
+    background: #fde8ec;
+    border: 1px solid #fca5a5;
+    border-radius: 4px;
+    color: #991b1b;
+    margin-bottom: 14px;
+}
+
+/* --- フォームページ ----------------------------------- */
+.form-card {
+    background: #fff;
+    border-radius: 6px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    max-width: 680px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 16px;
+}
+
+.form-row label { font-weight: bold; font-size: 13px; }
+
+.form-row .form-control { width: 100%; }
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+/* --- コメントセクション ------------------------------- */
+.comment-section {
+    margin-top: 32px;
+    max-width: 680px;
+}
+
+.comment-section h3 { font-size: 16px; margin-bottom: 12px; }
+
+.comment-list { list-style: none; margin-bottom: 16px; }
+
+.comment-item {
+    background: #f8f9fc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+}
+
+.comment-meta { font-size: 11px; color: #888; margin-top: 6px; }
+
+.comment-add { display: flex; gap: 8px; align-items: flex-end; }
+.comment-add textarea { flex: 1; }
+
+/* --- エラーページ ------------------------------------- */
+.error-container {
+    text-align: center;
+    padding: 60px 16px;
+}
+
+.error-container h2 { font-size: 28px; color: #dc3545; margin-bottom: 12px; }
+.error-container p  { color: #666; margin-bottom: 20px; }
