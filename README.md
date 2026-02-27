@@ -1,269 +1,146 @@
-# Change Log Lab
+# change-log-lab
 
-マイクロサービスアーキテクチャを採用した、コラボレーション型Todoアプリケーション。
+GitHub Copilot を活用した開発プロセスの実験・学習用モノレポ。  
+マイクロサービス構成の ToDo アプリケーションを中核に、CLI オーケストレーター、SRE エージェント、脆弱性スキャン、レガシーアプリなど複数のラボプロジェクトを含む。
 
-## アーキテクチャ概要
+---
 
-- **Auth Service** (Port 5001): ユーザー認証・JWT発行
-- **User Service** (Port 5002): ユーザープロフィール管理
-- **Todo Service** (Port 5003): Todo/List CRUD・権限管理
-- **BFF Service** (Port 5000): フロントエンド向け統合API
-- **Realtime Service** (Port 5004): SignalRによるリアルタイム通知
-- **Web** (Port 4200): Angular フロントエンド
+## リポジトリ構成
 
-各サービスは独立したPostgreSQLデータベースを持ちます。
+| ディレクトリ | 概要 |
+|---|---|
+| [`src/`](#srcメインアプリケーション) | メインアプリケーション（マイクロサービス群 + Angular フロントエンド） |
+| [`specs/`](#specs仕様設計) | 初期実装の Issue マップ・設計仕様 |
+| [`docs/`](#docsドキュメント) | レイアウト定義・要求定義・詳細設計 |
+| [`cli-orch-lab/`](#cli-orch-labcopilot-cli-orchestrator) | Copilot CLI エージェントによる開発プロセスオーケストレーター |
+| [`sre-agent-lab/`](#sre-agent-labsre-エージェントラボ) | SRE エージェント向けスタンドアロン ToDo アプリ |
+| [`vulnerability-site/`](#vulnerability-site脆弱性スキャンラボ) | 意図的脆弱性を含む Web アプリ + 自動スキャナー |
+| [`legacy-app-demo/`](#legacy-app-demoレガシーアプリデモ) | ASP.NET WebForms (.NET Framework 4.8) レガシー ToDo アプリ |
 
-## 前提条件
+---
 
-- .NET SDK (latest)
-- Node.js & npm
-- PostgreSQL
-- Angular CLI
+## `src/` — メインアプリケーション
 
-## セットアップ
+マイクロサービスアーキテクチャの共有 ToDo アプリケーション。JWT 認証、ロールベースアクセス制御、リアルタイム同期を備える。
 
-### 1. データベースのセットアップ
+### サービス一覧
 
-```bash
-# Auth Database
-cd src/auth-service/db
-PGPASSWORD=postgres psql -h localhost -U postgres -c "DROP DATABASE IF EXISTS auth_db;"
-PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE auth_db;"
-PGPASSWORD=postgres psql -h localhost -U postgres -d auth_db -f schema.sql
-PGPASSWORD=postgres psql -h localhost -U postgres -d auth_db -f seed.sql
+| サービス | ポート | 技術スタック | 説明 |
+|---|---|---|---|
+| [auth-service](src/auth-service/api/README.md) | `:5000` | .NET 10 / EF Core / PostgreSQL | ユーザー登録・ログイン・ログアウト、JWT 認証（10 分有効期限）、デバイス別セッション管理 |
+| [user-service](src/user-service/api/README.md) | `:5002` | .NET 10 / EF Core / PostgreSQL | ユーザープロフィール管理、招待用ユーザー検索 |
+| [todo-service](src/todo-service/api/README.md) | `:5001` | .NET 10 / EF Core / PostgreSQL | リスト・ToDo の CRUD、ロールベース共有（owner/editor/viewer）、Outbox パターン |
+| [bff-service](src/bff-service/api/README.md) | `:5000` | .NET 10 | BFF — Auth / User / Todo を集約し Angular 向け統合 API を提供 |
+| [web](src/web/README.md) | `:4200` | Angular 21 / Tailwind CSS / SignalR | SPA フロントエンド — スタンドアロンコンポーネント、Signals 状態管理、リアルタイム同期 |
 
-# User Database
-cd ../../../src/user-service/db
-PGPASSWORD=postgres psql -h localhost -U postgres -c "DROP DATABASE IF EXISTS user_db;"
-PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE user_db;"
-PGPASSWORD=postgres psql -h localhost -U postgres -d user_db -f schema.sql
-PGPASSWORD=postgres psql -h localhost -U postgres -d user_db -f seed.sql
+### 認証モデル
 
-# Todo Database
-cd ../../../src/todo-service/db
-PGPASSWORD=postgres psql -h localhost -U postgres -c "DROP DATABASE IF EXISTS todo_db;"
-PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE todo_db;"
-PGPASSWORD=postgres psql -h localhost -U postgres -d todo_db -f schema.sql
-PGPASSWORD=postgres psql -h localhost -U postgres -d todo_db -f seed.sql
-```
+- JWT（有効期限 10 分、リフレッシュトークンなし）
+- デバイスベースのログアウト（`device_sessions` テーブル）
+- BCrypt によるパスワードハッシュ
 
-### テストユーザー（開発環境のみ）
+---
 
-シードデータで3つのテストユーザーが作成されます：
+## `specs/` — 仕様・設計
 
-| メールアドレス | パスワード | 表示名 |
+初期実装（INIT）の Issue マップと各機能の設計仕様を管理。
+
+- [00-issue-map.md](specs/000-init/00-issue-map.md) — 全体アーキテクチャと Issue 一覧
+
+### 実装フェーズ
+
+| フェーズ | 内容 | Issue |
 |---|---|---|
-| `admin@example.com` | `password123` | Admin User |
-| `user@example.com` | `password123` | Regular User |
-| `demo@example.com` | `password123` | Demo User |
+| **1 — マイクロサービス基盤** | Auth / User / Todo サービス | INIT-005, 006, 007 |
+| **2 — 共有 & リアルタイム** | 共有・招待、SignalR、Outbox + NOTIFY/LISTEN | INIT-008 〜 011 |
+| **3 — BFF & フロントエンド** | BFF 集約、Angular コア、リアルタイム UI | INIT-012 〜 014 |
+| **4 — 検証** | ローカル E2E 検証 | INIT-015 |
 
-**注意**: これらは開発環境専用です。本番環境では絶対に使用しないでください。
+---
 
-### 2. バックエンドサービスの起動
+## `docs/` — ドキュメント
 
-各サービスを別々のターミナルで起動します。
+| ドキュメント | 説明 |
+|---|---|
+| [repo-layout.md](docs/repo-layout.md) | ディレクトリ構成・ポート割当・環境変数・命名規約 |
+| [要求定義/INDEX.md](docs/要求定義/INDEX.md) | SRS（ソフトウェア要求仕様書）インデックス — ISO/IEC/IEEE 29148 準拠 |
+| [詳細設計/INDEX.md](docs/詳細設計/INDEX.md) | SDD（ソフトウェア設計記述）インデックス — IEEE 1016-2009 準拠 |
+| [SRE-Agents-Demo/](docs/SRE-Agents-Demo/README.md) | SRE エージェントデモ用ドキュメント群 |
 
-#### Auth Service (Port 5001)
+---
 
-```bash
-cd src/auth-service/api && dotnet restore && dotnet run
-```
+## `cli-orch-lab/` — Copilot CLI Orchestrator
 
-#### User Service (Port 5002)
+GitHub Copilot CLI カスタムエージェントのみで構成された開発プロセスオーケストレーター。
 
-```bash
-cd src/user-service/api && dotnet restore && dotnet run
-```
+**ワークフロー**: 要件定義 → タスク計画 → サマリ → 開発（TDD: テストシナリオ → テスト実装 → 本実装） → 統合テスト
 
-#### Todo Service (Port 5003)
+- エージェント定義: `.github/agents/`
+- 成果物出力: `work/output/`
+- 状態管理: `work/status.yaml`
 
-```bash
-cd src/todo-service/api && dotnet restore && dotnet run
-```
+詳細: [cli-orch-lab/README.md](cli-orch-lab/README.md)
 
-#### BFF Service (Port 5000)
+---
 
-```bash
-cd src/bff-service/api && dotnet restore && dotnet run
-```
+## `sre-agent-lab/` — SRE エージェントラボ
 
-### 3. フロントエンドの起動
+SRE エージェント向けのスタンドアロン ToDo アプリケーション。
 
-```bash
-cd src/web && npm ci && npm start
-```
+- **バックエンド**: .NET 10 + EF Core + PostgreSQL（`:8080`）
+- **フロントエンド**: Angular 21 + Tailwind CSS（`:4200`）
+- **認証**: 独自 JWT 認証
+- **開発環境**: Dev Container ベース
 
-アプリケーションは http://localhost:4200 で起動します。
+詳細: [sre-agent-lab/README.md](sre-agent-lab/README.md)
 
-## デバッグコマンド
+---
 
-### データベース接続確認
+## `vulnerability-site/` — 脆弱性スキャンラボ
 
-```bash
-# Auth DB
-PGPASSWORD=postgres psql -h localhost -U postgres -d auth_db -c "\dt"
+意図的に約 22 種の脆弱性を埋め込んだ Web アプリケーションと、CEH ベースの 7 フェーズ AI 自動スキャナー。
 
-# User DB
-PGPASSWORD=postgres psql -h localhost -U postgres -d user_db -c "\dt"
+| コンポーネント | 技術 | ポート |
+|---|---|---|
+| Frontend | React | `:3000` |
+| API | ASP.NET | `:5000` |
+| Database | PostgreSQL | `:15432` |
+| Scanner | OWASP ZAP / Nikto / sqlmap / Nmap / Trivy | — |
 
-# Todo DB
-PGPASSWORD=postgres psql -h localhost -U postgres -d todo_db -c "\dt"
-```
+詳細: [vulnerability-site/README.md](vulnerability-site/README.md)
 
-### データベース内容確認
+---
 
-```bash
-# ユーザー一覧
-PGPASSWORD=postgres psql -h localhost -U postgres -d auth_db -c "SELECT * FROM users;"
+## `legacy-app-demo/` — レガシーアプリデモ
 
-# プロフィール一覧
-PGPASSWORD=postgres psql -h localhost -U postgres -d user_db -c "SELECT * FROM user_profiles;"
+意図的にレガシー構成で構築された ToDo アプリケーション。
 
-# リスト一覧
-PGPASSWORD=postgres psql -h localhost -U postgres -d todo_db -c "SELECT * FROM lists;"
+- **技術**: ASP.NET WebForms / .NET Framework 4.8 / SQL Server / Visual Studio 2019
+- **機能**: タスク CRUD、フィルタリング、ソート、検索、優先度、期日、通知、コメント
 
-# Todo一覧
-PGPASSWORD=postgres psql -h localhost -U postgres -d todo_db -c "SELECT * FROM todos;"
+詳細: [legacy-app-demo/docs/init.md](legacy-app-demo/docs/init.md)
 
-# リストメンバー（招待）
-PGPASSWORD=postgres psql -h localhost -U postgres -d todo_db -c "SELECT * FROM list_members;"
-```
+---
 
-### サービスヘルスチェック
+## 標準ポート割当
 
-```bash
-# Auth Service
-curl http://localhost:5001/api/auth/health || echo "Auth Service: Not Running"
+| ポート | 用途 |
+|---|---|
+| `4200` | Angular Dev Server |
+| `5000` | BFF / API |
+| `5001` | Todo Service |
+| `5002` | User Service / SignalR |
+| `5432` | PostgreSQL |
+| `7071` | Azure Functions |
+| `10000–10002` | Azurite |
 
-# User Service
-curl http://localhost:5002/api/users/health || echo "User Service: Not Running"
+---
 
-# Todo Service
-curl http://localhost:5003/api/lists || echo "Todo Service: Not Running (要認証)"
+## 環境変数
 
-# BFF Service
-curl http://localhost:5000/api/auth/health || echo "BFF Service: Not Running"
+| 変数名 | 用途 |
+|---|---|
+| `DB_CONNECTION_STRING` | PostgreSQL 接続文字列 |
+| `JWT_SIGNING_KEY` | JWT 署名キー |
 
-# Web
-curl http://localhost:4200 || echo "Web: Not Running"
-```
-
-### ログの確認
-
-各サービスの標準出力でログを確認できます。
-
-### データベースのリセット
-
-```bash
-# 全データベースをリセット
-cd src/auth-service/db
-PGPASSWORD=postgres psql -h localhost -U postgres -d auth_db -c "TRUNCATE users, device_sessions CASCADE;"
-
-cd ../../user-service/db
-PGPASSWORD=postgres psql -h localhost -U postgres -d user_db -c "TRUNCATE user_profiles CASCADE;"
-
-cd ../../todo-service/db
-PGPASSWORD=postgres psql -h localhost -U postgres -d todo_db -c "TRUNCATE lists, todos, list_members, outbox_events CASCADE;"
-```
-
-### APIテスト（.http ファイル）
-
-各サービスの `api` ディレクトリに `api.http` ファイルがあります。VS Codeの REST Client拡張機能で実行できます。
-
-```bash
-# Auth Service
-src/auth-service/api/api.http
-
-# User Service
-src/user-service/api/api.http
-
-# Todo Service
-src/todo-service/api/api.http
-```
-
-## トラブルシューティング
-
-### ポートが使用中の場合
-
-```bash
-# プロセスの確認
-lsof -i :5000  # BFF
-lsof -i :5001  # Auth
-lsof -i :5002  # User
-lsof -i :5003  # Todo
-lsof -i :4200  # Web
-
-# プロセスの終了
-kill -9 <PID>
-```
-
-### データベース接続エラー
-
-```bash
-# PostgreSQLの起動確認
-sudo service postgresql status
-
-# PostgreSQLの起動
-sudo service postgresql start
-```
-
-### JWT Secret の設定
-
-各サービスの `appsettings.json` で同じJWT Secretを設定してください：
-
-```json
-{
-  "Jwt": {
-    "Secret": "your-secret-key-min-32-chars-long-for-hs256",
-    "Issuer": "auth-service",
-    "Audience": "auth-service"
-  }
-}
-```
-
-## 開発ワークフロー
-
-1. **データベース作成**: 上記セットアップ手順に従う
-2. **バックエンド起動**: Auth → User → Todo → BFF の順で起動
-3. **フロントエンド起動**: `npm start` でWebアプリを起動
-4. **動作確認**: http://localhost:4200 にアクセス
-5. **ユーザー登録**: 新規ユーザーを作成
-6. **リスト作成**: Todoリストを作成
-7. **招待テスト**: 別ユーザーを招待して共有を確認
-
-## プロジェクト構造
-
-```
-.
-├── docs/              # ドキュメント
-├── specs/             # 仕様書
-│   └── 000-init/      # 初期実装仕様
-└── src/
-    ├── auth-service/  # 認証サービス
-    │   ├── api/       # ASP.NET WebAPI
-    │   └── db/        # PostgreSQL スキーマ
-    ├── user-service/  # ユーザーサービス
-    │   ├── api/
-    │   └── db/
-    ├── todo-service/  # Todoサービス
-    │   ├── api/
-    │   └── db/
-    ├── bff-service/   # BFF (Backend for Frontend)
-    │   └── api/
-    └── web/           # Angular フロントエンド
-        └── src/
-```
-
-## 主要機能
-
-- ✅ ユーザー登録・ログイン（device_id管理）
-- ✅ JWT認証（10分有効期限）
-- ✅ Todoリスト CRUD
-- ✅ Todo項目 CRUD
-- ✅ ユーザー招待・共有（owner/viewer権限）
-- ✅ リアルタイム同期（SignalR） ※要実装
-- ✅ Outbox Pattern + NOTIFY/LISTEN ※要実装
-
-## ライセンス
-
-MIT
+詳細は [docs/repo-layout.md](docs/repo-layout.md) を参照。
