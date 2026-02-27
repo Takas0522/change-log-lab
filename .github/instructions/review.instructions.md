@@ -3,49 +3,49 @@ applyTo: "docs/**"
 excludeAgent: "coding-agent"
 ---
 
-# ドキュメント生成規約
+# Document Generation Standards
 
-## 言語
+## Language
 
-- 指摘は日本語で実施してください。
-- 用語や略語は初出時に正式名称を併記すること（例：SRS（ソフトウェア要求仕様書））。
+- All review comments shall be written in English.
+- Abbreviations and technical terms shall include their full form upon first use (e.g., SRS (Software Requirements Specification)).
 
-## ISO規格準拠
+## ISO Standards Compliance
 
-生成するドキュメントは、以下のシステム開発系ISO規格の書式・構成に則ること。
+All generated documents shall conform to the format and structure defined by the following system development ISO standards.
 
-### 準拠対象規格
+### Applicable Standards
 
-| 規格 | 概要 |
+| Standard | Description |
 |---|---|
-| ISO/IEC/IEEE 12207 | ソフトウェアライフサイクルプロセス |
-| ISO/IEC/IEEE 15288 | システムライフサイクルプロセス |
-| ISO/IEC/IEEE 29148 | 要求エンジニアリング（要求仕様書の書式） |
-| ISO/IEC/IEEE 15289 | ライフサイクル情報成果物（文書化）の内容 |
+| ISO/IEC/IEEE 12207 | Software Life Cycle Processes |
+| ISO/IEC/IEEE 15288 | System Life Cycle Processes |
+| ISO/IEC/IEEE 29148 | Requirements Engineering (Requirements Specification Format) |
+| ISO/IEC/IEEE 15289 | Life Cycle Information Products (Documentation Content) |
 
-### 文書共通フォーマット
+### Common Document Format
 
-各ドキュメントには以下のセクションを必ず含めること。
+Every document shall include the following sections.
 
-1. **表紙情報**
-   - 文書タイトル
-   - 文書番号・版数
-   - 作成日／改訂日
-   - 作成者／承認者
-2. **改訂履歴**
-   - 版数、日付、変更内容、変更者を表形式で記載
-3. **目次**
-4. **1. はじめに**
-   - 1.1 目的
-   - 1.2 適用範囲
-   - 1.3 用語と定義
-   - 1.4 参照文書
-5. **2. 本文**（文書種別に応じた内容）
-6. **付録**（必要に応じて）
+1. **Cover Page**
+   - Document title
+   - Document number and version
+   - Date of creation / date of revision
+   - Author / approver
+2. **Revision History**
+   - Record version, date, description of change, and author in tabular form
+3. **Table of Contents**
+4. **1. Introduction**
+   - 1.1 Purpose
+   - 1.2 Scope
+   - 1.3 Terms and Definitions
+   - 1.4 Referenced Documents
+5. **2. Body** (content per document type)
+6. **Appendices** (as needed)
 
-### 文書品質基準
+### Document Quality Criteria
 
-- 各セクションは階層番号（1, 1.1, 1.1.1 …）で構造化すること。
-- 要件・仕様などの記述は一意に識別可能な番号を付与すること（例：REQ-001）。
-- 図表にはキャプションと番号を付けること（例：図1、表2）。
-- 曖昧な表現（「など」「適宜」）を避け、具体的かつ検証可能な記述とすること。
+- Each section shall be structured with hierarchical numbering (1, 1.1, 1.1.1, etc.).
+- Requirements and specifications shall be assigned a unique identifier (e.g., REQ-001).
+- All figures and tables shall have a caption and a number (e.g., Figure 1, Table 2).
+- Ambiguous expressions (e.g., "etc.", "as appropriate") shall be avoided; descriptions shall be specific and verifiable.
