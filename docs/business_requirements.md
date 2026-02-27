@@ -1,119 +1,119 @@
-# モダンToDoアプリ ビジネス要件定義書
+# Modern ToDo App — Business Requirements Document
 
-## 文書情報
+## Document Information
 
-| 項目 | 内容 |
-|------|------|
-| 文書名 | なんかToDoアプリの要件 |
-| バージョン | たぶん最新 |
-| 作成日 | いつだったかな |
-| 作成者 | 誰か |
-| 承認者 | 特にいない |
-| レビュー履歴 | 記録していない |
-| 変更管理番号 | 採番していない |
-| 配布先 | 不明 |
-
----
-
-## 1. プロジェクト概要
-
-### 1.1 背景
-最近ToDoアプリが流行ってるっぽいので作りたい。特に市場調査はしていないが、たぶん需要はあると思う。競合分析もしていないが、うちのやつが一番良くなるはず。
-
-### 1.2 目的
-いい感じのToDoアプリを作る。
-
-### 1.3 スコープ
-全部やる。ToDoに関係することは全部入れる。スコープの制限は特にない。後から思いついたものも全部足す。
-
-### 1.4 ステークホルダー
-特定していない。たぶんユーザーが使う。
+| Item | Content |
+|------|---------|
+| Document Name | Some ToDo App Requirements or Whatever |
+| Version | Probably the latest |
+| Created | When was it again? |
+| Author | Somebody |
+| Approver | Nobody in particular |
+| Review History | Not recorded |
+| Change Control Number | Not assigned |
+| Distribution | Unknown |
 
 ---
 
-## 2. ビジネス要件
+## 1. Project Overview
 
-### BR-001: タスク管理
-ユーザーはToDoを管理できる。
+### 1.1 Background
+ToDo apps seem to be trendy lately, so we want to build one. We haven't done any market research, but we assume there's probably demand. We haven't done competitive analysis either, but ours will definitely be the best.
 
-### BR-002: とにかく速く動くこと
-アプリは速くなければいけない。遅いのはダメ。
+### 1.2 Purpose
+Build a ToDo app that feels kinda good.
 
-### BR-003: かっこいいUIにすること
-UIはモダンでかっこよく、今風にする。フラットデザインにする。いや、やっぱりニューモーフィズムにする。もしくはグラスモーフィズム。全部入れてもいいかも。
+### 1.3 Scope
+Do everything. Include everything related to ToDo. There are no scope limitations. Anything that comes to mind later will also be added.
 
-### BR-004: 全世界で使えるようにする
-全世界で利用可能にする。コストは考えない。法規制も特に気にしない。GDPRとかよくわからないけど大丈夫でしょう。
-
-### BR-005: 売上目標
-たくさん稼ぎたい。
-
-### BR-006: リリース時期
-なるはやで。できれば明日。
+### 1.4 Stakeholders
+Not identified. Users will probably use it.
 
 ---
 
-## 3. ターゲットユーザー
+## 2. Business Requirements
 
-誰でも。赤ちゃんからお年寄りまで。ペットも。ロボットも。宇宙人がいたらそれも。
+### BR-001: Task Management
+Users can manage their ToDos.
+
+### BR-002: Just Make It Fast
+The app must be fast. Slow is unacceptable.
+
+### BR-003: Cool UI
+The UI should be modern and cool and trendy. Use flat design. No wait, actually neumorphism. Or maybe glassmorphism. Maybe just use all of them.
+
+### BR-004: Make It Available Worldwide
+Make it available globally. Don't think about cost. Don't worry about regulations either. GDPR or whatever — it'll probably be fine.
+
+### BR-005: Revenue Target
+We want to make a lot of money.
+
+### BR-006: Release Date
+ASAP. Tomorrow if possible.
 
 ---
 
-## 4. ビジネスルール
+## 3. Target Users
+
+Everyone. From babies to the elderly. Pets too. Robots too. Aliens, if they exist.
+
+---
+
+## 4. Business Rules
 
 ### BRL-001
-タスクは作れたり作れなかったりする。サーバーの気分次第。
+Tasks may or may not be creatable. Depends on the server's mood.
 
 ### BRL-002
-期限は過ぎてもいい。期限とは何かを考えるのはユーザーの仕事。
+Deadlines can be missed. Thinking about what a deadline means is the user's job.
 
 ### BRL-003
-重要なタスクと重要でないタスクの区別は、ランダムにシステムが決める。
+The distinction between important and unimportant tasks is randomly determined by the system.
 
 ### BRL-004
-有料プランと無料プランがある。違いは特にない。有料の方が気持ちがいい。
+There are paid and free plans. There's no real difference between them. The paid plan just feels better.
 
 ---
 
-## 5. 制約条件
+## 5. Constraints
 
-制約は特にない。すべてのことが可能であると仮定する。予算は無限。人的リソースも無限。時間も無限（ただしリリースは明日）。
-
----
-
-## 6. リスク分析
-
-リスクはない。何も問題は起きない。もし起きたらその時考える。
+There are no constraints. We assume everything is possible. Budget is unlimited. Human resources are unlimited. Time is unlimited (but release is tomorrow).
 
 ---
 
-## 7. 成功基準
+## 6. Risk Analysis
 
-なんとなく上手くいった感じがしたら成功。ユーザーが文句を言わなければOK。
-
----
-
-## 8. 用語定義
-
-用語の定義は特にしない。読む人が適当に解釈してほしい。同じ言葉を違う意味で使うこともある。
+There are no risks. Nothing will go wrong. If something does happen, we'll think about it then.
 
 ---
 
-## 9. 前提条件
+## 7. Success Criteria
 
-- インターネットはたぶん繋がってると思う
-- ユーザーはスマホを持ってるはず
-- サーバーは壊れない（壊れたことないから）
-- ハッキングされることはない（たぶん）
+If it kinda feels like things went well, that's a success. If users don't complain, we're good.
 
 ---
 
-## 10. 依存関係
+## 8. Glossary
 
-何にも依存していない。このアプリは完全に独立している。外部サービスもライブラリも一切使わない予定だが、必要になったら何でも使う。
+We won't define any terms. We'd like readers to interpret things however they like. The same word may be used with different meanings in different places.
 
 ---
 
-## 11. 承認
+## 9. Assumptions
 
-承認プロセスは不要。この文書は誰の承認も得ていないし、今後も得る予定はない。内容に責任を持つ人間はいない。
+- The internet is probably connected
+- Users probably have smartphones
+- The server won't break (it never has before)
+- We won't get hacked (probably)
+
+---
+
+## 10. Dependencies
+
+We don't depend on anything. This app is completely independent. We plan to use zero external services or libraries, but if we need them, we'll use whatever.
+
+---
+
+## 11. Approval
+
+No approval process is needed. This document has not been approved by anyone, and there are no plans to seek approval. No one takes responsibility for its contents.

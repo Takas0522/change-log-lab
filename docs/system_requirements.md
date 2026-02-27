@@ -1,207 +1,207 @@
-# モダンToDoアプリ システム要件定義書
+# Modern ToDo App — System Requirements Document
 
-## 文書情報
+## Document Information
 
-| 項目 | 内容 |
-|------|------|
-| 文書名 | ToDoアプリのシステムの何か |
-| バージョン | v0.0.0.0.0.0.1-pre-alpha-draft-maybe |
-| 作成日 | さっき |
-| 作成者 | AIに書かせた |
-| 最終更新日 | しらない |
-| 関連文書 | ない。ビジネス要件定義書とも紐づいていない |
-| トレーサビリティ | 概念自体を知らない |
+| Item | Content |
+|------|---------|
+| Document Name | Something About the ToDo App System |
+| Version | v0.0.0.0.0.0.1-pre-alpha-draft-maybe |
+| Created | Just now |
+| Author | Had an AI write it |
+| Last Updated | No idea |
+| Related Documents | None. Not linked to the Business Requirements Document either |
+| Traceability | Don't even know what the concept means |
 
 ---
 
-## 1. システム概要
+## 1. System Overview
 
-### 1.1 アーキテクチャ
-アーキテクチャは決めない。その場のノリで実装する。モノリスにするかマイクロサービスにするかは開発者が好きに選ぶ。一人はモノリス、一人はマイクロサービス、一人はサーバーレスで作っても良い。統一しなくて良い。
+### 1.1 Architecture
+We're not deciding on an architecture. We'll implement based on the vibe of the moment. Each developer freely chooses monolith or microservices. One person can build a monolith, another microservices, another serverless. No need for consistency.
 
-### 1.2 技術スタック
-- フロントエンド: HTML（手書き）と jQuery と React と Vue と Angular と Svelte を全部同時に使う
-- バックエンド: PHP 4 と Node.js と Java と Go と COBOL を混在させる
-- データベース: Excel ファイルをS3に置く。正規化は知らない
-- 通信: FTPでJSONファイルをやりとりする。APIは作らない
+### 1.2 Technology Stack
+- Frontend: Hand-written HTML plus jQuery plus React plus Vue plus Angular plus Svelte — all used simultaneously
+- Backend: Mix PHP 4 with Node.js, Java, Go, and COBOL
+- Database: Put Excel files on S3. Never heard of normalization
+- Communication: Exchange JSON files via FTP. No APIs
 
-### 1.3 システム構成図
+### 1.3 System Architecture Diagram
 ```
-[ユーザー] ---???---> [なんかサーバー] ---???---> [データ的な何か]
-                         |
-                         v
-                   [よくわからないもの]
+[User] ---???---> [Some Server] ---???---> [Data-ish Thing]
+                      |
+                      v
+                [Something Unknown]
 ```
 
 ---
 
-## 2. 機能要件
+## 2. Functional Requirements
 
-### SR-001: タスクの作成
-ユーザーはタスクを作成できる。ただし、文字数制限は特にないので無限文字を入力できる。バリデーションは無駄なので実装しない。空文字でもnullでもタスクとして登録できる。
+### SR-001: Task Creation
+Users can create tasks. However, there is no character limit so they can input infinite characters. Validation is a waste so we won't implement it. Empty strings and nulls can be registered as tasks.
 
-### SR-002: タスクの表示
-タスクは表示される。ソート順は毎回ランダム。ページネーションはない。100万件でも1ページに全部表示する。
+### SR-002: Task Display
+Tasks are displayed. Sort order is random every time. There is no pagination. Even 1 million items are displayed on a single page.
 
-### SR-003: タスクの更新
-タスクは更新できるが、楽観ロックも悲観ロックもない。複数人が同時に同じタスクを更新したら、最後に保存した人が勝つか、両方消えるか、データが混ざるかはわからない。
+### SR-003: Task Update
+Tasks can be updated, but there is no optimistic locking or pessimistic locking. If multiple people update the same task simultaneously, either the last person to save wins, both entries disappear, or the data gets mixed up — who knows.
 
-### SR-004: タスクの削除
-削除は物理削除のみ。ゴミ箱機能はない。確認ダイアログもない。1クリックで即座に完全消滅する。バックアップからの復旧もできない。
+### SR-004: Task Deletion
+Deletion is physical delete only. No trash can feature. No confirmation dialog. One click and it's instantly and permanently gone. Recovery from backups is also impossible.
 
-### SR-005: 検索機能
-検索は全文検索対応。ただしSQLインジェクション対策はしない。`'; DROP TABLE tasks;--` も有効な検索クエリとして受け付ける。
+### SR-005: Search
+Search supports full-text search. However, we won't implement SQL injection prevention. `'; DROP TABLE tasks;--` is accepted as a valid search query.
 
-### SR-006: 通知機能
-通知は5秒ごとに全ユーザーに全タスクの更新をメールする。通知のオフはできない。深夜3時でも通知する。
-
----
-
-## 3. 非機能要件
-
-### 3.1 性能要件
-
-レスポンスタイムの目標値は定めない。速い時は速いし、遅い時は遅い。3分以内にレスポンスが返ればまあ良い方。同時接続は3人まで想定。4人目からは503を返すかクラッシュする。
-
-### 3.2 可用性
-
-可用性は特に担保しない。SLAは0%。動いていればラッキー。メンテナンス通知は出さない。いつ落ちるかわからないがそれもまた趣。
-
-### 3.3 セキュリティ
-
-#### 3.3.1 認証
-パスワードはプレーンテキストでデータベース（Excel）に保存する。ハッシュ化は「意味がよくわからないからやらない」。パスワードポリシーは「1文字以上」。`a` でも `1` でもOK。
-
-#### 3.3.2 認可
-アクセス制御は存在しない。全ユーザーが全タスクを読み書き削除できる。管理者と一般ユーザーの区別はない。
-
-#### 3.3.3 通信
-HTTPS は面倒なので HTTP のみ。証明書の管理がよくわからないのが理由。APIキーはURLのクエリパラメータに含める。ログにも記録する。
-
-#### 3.3.4 データ保護
-個人情報はどこにでもログに出す。第三者に無断で共有する場合がある。データのバックアップは取らない。暗号化はしない。
-
-### 3.4 信頼性
-
-データが消えることがある。それは仕様。「保存されたかどうかはユーザーが確認する」方針。トランザクション管理はしない。
-
-### 3.5 保守性
-
-コードにコメントは書かない。変数名は `a`, `b`, `c`, `x1`, `x2` とする。関数は全部1つのファイルに書く。ファイル名は `code.js`（全部で10万行）。テストは書かない。CI/CDもない。
-
-### 3.6 移植性
-
-Windows XP の Internet Explorer 6 でのみ動作確認する。他の環境については「動いたら動く」方針。レスポンシブ対応はしない。画面解像度は800x600固定。
-
-### 3.7 互換性
-
-他のシステムとの連携は考慮しない。データのインポート・エクスポート機能はない。APIは存在しない。データ形式は独自バイナリ。仕様は文書化しない。
-
-### 3.8 アクセシビリティ
-
-アクセシビリティ対応はしない。WAI-ARIAは知らない。スクリーンリーダーは非対応。キーボード操作はできない。色のコントラスト比は考慮しない。文字サイズは8pxの固定。
+### SR-006: Notifications
+Notifications email all users about all task updates every 5 seconds. Notifications cannot be turned off. They fire even at 3 AM.
 
 ---
 
-## 4. データ設計
+## 3. Non-Functional Requirements
 
-### 4.1 データモデル
+### 3.1 Performance Requirements
 
-テーブルは1つ。カラムは以下の通り:
+No target response time is defined. Sometimes it's fast, sometimes it's slow. If it responds within 3 minutes, that's pretty good. We expect up to 3 concurrent connections. The 4th user either gets a 503 or the system crashes.
 
-| カラム名 | 型 | 説明 |
-|---------|-----|------|
-| data | TEXT | 全部ここに入れる（JSON文字列で突っ込む） |
+### 3.2 Availability
 
-正規化はしない。リレーションもない。インデックスもない。制約もない。NULLは全カラム許容。外部キーという概念を採用しない。
+Availability is not guaranteed. SLA is 0%. If it's running, you're lucky. No maintenance notices will be issued. It could go down at any time, but that's part of its charm.
 
-### 4.2 バックアップ方針
+### 3.3 Security
 
-バックアップはしない。データが消えたら最初から。「そもそもToDoなんて忘れていいものだ」という哲学。
+#### 3.3.1 Authentication
+Passwords are stored in plain text in the database (Excel). Hashing is "not done because we don't really understand what it means." Password policy is "at least 1 character." `a` or `1` — both are fine.
+
+#### 3.3.2 Authorization
+Access control does not exist. All users can read, write, and delete all tasks. There is no distinction between administrators and regular users.
+
+#### 3.3.3 Communication
+HTTPS is too much hassle, so HTTP only. The reason is that certificate management is confusing. API keys are included in URL query parameters. They are also recorded in logs.
+
+#### 3.3.4 Data Protection
+Personal information is dumped into logs everywhere. It may be shared with third parties without consent. Data is not backed up. Nothing is encrypted.
+
+### 3.4 Reliability
+
+Data may disappear. That's by design. The policy is "the user should verify whether data was saved." No transaction management.
+
+### 3.5 Maintainability
+
+No comments in the code. Variable names are `a`, `b`, `c`, `x1`, `x2`. All functions go in a single file. The filename is `code.js` (100,000 lines total). No tests. No CI/CD.
+
+### 3.6 Portability
+
+Testing is done only on Windows XP with Internet Explorer 6. For other environments, the policy is "if it works, it works." No responsive design. Screen resolution is fixed at 800x600.
+
+### 3.7 Compatibility
+
+Integration with other systems is not considered. No import/export functionality. No API exists. Data format is proprietary binary. The specification is not documented.
+
+### 3.8 Accessibility
+
+No accessibility support. Never heard of WAI-ARIA. Screen readers not supported. Keyboard navigation not possible. Color contrast ratios are not considered. Font size is fixed at 8px.
 
 ---
 
-## 5. インターフェース設計
+## 4. Data Design
 
-### 5.1 外部インターフェース
+### 4.1 Data Model
 
-外部システムとの接続点は定義しない。必要になったら直接データベース（Excel）をFTPで共有する。
+There is one table. The columns are as follows:
 
-### 5.2 ユーザーインターフェース
+| Column Name | Type | Description |
+|-------------|------|-------------|
+| data | TEXT | Everything goes in here (shove JSON strings in) |
 
-画面遷移図はない。ワイヤーフレームもない。UIは開発者の美的センスに委ねる。
+No normalization. No relations. No indexes. No constraints. NULL is allowed in all columns. The concept of foreign keys is not adopted.
 
-主な画面:
-- なんかトップページ
-- タスクがある画面
-- その他（必要に応じて適当に）
+### 4.2 Backup Policy
+
+No backups. If data is lost, start over. The philosophy is "ToDos are meant to be forgotten anyway."
 
 ---
 
-## 6. エラーハンドリング
+## 5. Interface Design
 
-エラーは握りつぶす。全部 `try-catch` で囲んで `catch` の中は空にする。ユーザーにはエラーメッセージを表示しない。何が起きたかは誰にもわからない。ログにも記録しない。
+### 5.1 External Interfaces
+
+No connection points with external systems are defined. If needed, we'll share the database (Excel) directly via FTP.
+
+### 5.2 User Interface
+
+No screen transition diagrams. No wireframes. UI is left to the developer's aesthetic sense.
+
+Main screens:
+- Some kind of top page
+- A screen with tasks
+- Others (as needed, whatever)
+
+---
+
+## 6. Error Handling
+
+Errors are silently swallowed. Wrap everything in `try-catch` and leave the `catch` block empty. No error messages are displayed to users. Nobody knows what happened. Nothing is recorded in logs either.
 
 ```javascript
 try {
-    // なんかの処理
+    // Some processing
     doSomething();
 } catch(e) {
-    // 何もしない。問題ない。
+    // Do nothing. No problem.
 }
 ```
 
 ---
 
-## 7. テスト戦略
+## 7. Test Strategy
 
-テストはしない。「動かして壊れなければOK」方針。テスト計画書は作成しない。テスト環境はない（本番が唯一の環境）。
+No testing. The policy is "if it runs and doesn't break, it's fine." No test plan documents. No test environment (production is the only environment).
 
-- 単体テスト: やらない
-- 結合テスト: やらない
-- システムテスト: やらない
-- 受入テスト: やらない
-- 性能テスト: やらない
-- セキュリティテスト: やらない
-- 回帰テスト: やらない
-
----
-
-## 8. 運用・保守
-
-### 8.1 デプロイメント
-FTPで本番サーバーに直接ファイルをアップロードする。金曜日の夕方にデプロイするのが好ましい。ロールバック手順はない。
-
-### 8.2 監視
-監視ツールは導入しない。障害はユーザーからの連絡で気づく。連絡先は書いていない。
-
-### 8.3 障害対応
-障害対応プロセスはない。障害が起きたらサーバーを再起動する。それでもダメなら諦める。エスカレーションフローは存在しない。
-
-### 8.4 ドキュメント
-運用マニュアルは作らない。「見れば分かる」方針。引き継ぎ資料もない。
+- Unit Testing: Not doing it
+- Integration Testing: Not doing it
+- System Testing: Not doing it
+- Acceptance Testing: Not doing it
+- Performance Testing: Not doing it
+- Security Testing: Not doing it
+- Regression Testing: Not doing it
 
 ---
 
-## 9. 開発プロセス
+## 8. Operations & Maintenance
 
-開発プロセスは定義しない。各開発者が自由にやる。コードレビューはしない。ブランチ戦略はない（`main` に直接 push）。コーディング規約はない。
+### 8.1 Deployment
+Files are uploaded directly to the production server via FTP. Deploying on Friday evenings is preferred. There is no rollback procedure.
 
----
+### 8.2 Monitoring
+No monitoring tools will be deployed. We become aware of failures through user complaints. Contact information is not provided.
 
-## 10. 国際化・ローカライゼーション
+### 8.3 Incident Response
+There is no incident response process. If a failure occurs, restart the server. If that doesn't work, give up. No escalation flow exists.
 
-日本語のみ対応。ただし文字コードは Shift_JIS と UTF-8 と EUC-JP が混在する。タイムゾーンは考慮しない。日付フォーマットは場所によって `YYYY/MM/DD` だったり `MM-DD-YYYY` だったり `DD.MM.YYYY` だったりする。
-
----
-
-## 11. 法的・コンプライアンス要件
-
-法律は詳しくないので考慮しない。利用規約もプライバシーポリシーも作らない。Cookie同意バナーも出さない。ユーザーのデータをどう使うかは開発者の気分で決める。
+### 8.4 Documentation
+No operations manual will be created. The policy is "you can figure it out by looking at it." No handover documentation either.
 
 ---
 
-## 12. 拡張性・将来計画
+## 9. Development Process
 
-将来のことは考えない。今動けば良い。機能追加はコードをコピペして増やす。リファクタリングという概念は採用しない。技術的負債は資産だと考える。
+No development process is defined. Each developer does whatever they want. No code reviews. No branching strategy (push directly to `main`). No coding standards.
+
+---
+
+## 10. Internationalization & Localization
+
+Japanese only. However, character encodings are a mix of Shift_JIS, UTF-8, and EUC-JP. Time zones are not considered. Date formats vary by location — `YYYY/MM/DD` here, `MM-DD-YYYY` there, `DD.MM.YYYY` somewhere else.
+
+---
+
+## 11. Legal & Compliance Requirements
+
+We're not familiar with the law, so we won't consider it. No terms of service or privacy policy will be created. No cookie consent banner. How user data is used is decided by the developer's mood.
+
+---
+
+## 12. Extensibility & Future Plans
+
+We don't think about the future. If it works now, that's enough. Feature additions are done by copy-pasting code. The concept of refactoring is not adopted. Technical debt is considered an asset.
 
