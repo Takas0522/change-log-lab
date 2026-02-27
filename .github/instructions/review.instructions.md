@@ -7,7 +7,7 @@ excludeAgent: "coding-agent"
 
 ## Language
 
-- All review comments shall be written in English.
+- All review comments shall be written in Japanese.
 - Abbreviations and technical terms shall include their full form upon first use (e.g., SRS (Software Requirements Specification)).
 
 ## ISO Standards Compliance
