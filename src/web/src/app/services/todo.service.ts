@@ -1,7 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { tap, catchError } from 'rxjs';
-import { TodoModel, CreateTodoRequest, UpdateTodoRequest } from '../models';
+import { TodoModel, CreateTodoRequest, UpdateTodoRequest, TodoFilterOptions } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -16,9 +16,29 @@ export class TodoService {
   readonly todos = this.todosSignal.asReadonly();
   readonly loading = this.loadingSignal.asReadonly();
 
-  loadTodos(listId: string) {
+  loadTodos(listId: string, filters?: TodoFilterOptions) {
     this.loadingSignal.set(true);
-    return this.http.get<TodoModel[]>(`${this.API_URL}/${listId}/todos`).pipe(
+    
+    let params = new HttpParams();
+    if (filters) {
+      if (filters.status) {
+        params = params.set('status', filters.status);
+      }
+      if (filters.labelId) {
+        params = params.set('labelId', filters.labelId);
+      }
+      if (filters.search) {
+        params = params.set('search', filters.search);
+      }
+      if (filters.dueDateFrom) {
+        params = params.set('dueDateFrom', filters.dueDateFrom);
+      }
+      if (filters.dueDateTo) {
+        params = params.set('dueDateTo', filters.dueDateTo);
+      }
+    }
+    
+    return this.http.get<TodoModel[]>(`${this.API_URL}/${listId}/todos`, { params }).pipe(
       tap(todos => {
         this.todosSignal.set(todos);
         this.loadingSignal.set(false);

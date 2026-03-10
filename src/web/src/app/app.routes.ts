@@ -47,5 +47,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/list-detail/list-detail.component').then(m => m.ListDetailComponent),
     canActivate: [authGuard]
   },
+  {
+    path: 'lists/:id/labels',
+    loadComponent: () => import('./components/label-manager/label-manager.component').then(m => m.LabelManagerComponent),
+    canActivate: [authGuard]
+  },
   { path: '**', redirectTo: '/lists' }
 ];
