@@ -78,3 +78,18 @@ public record ListMemberResponse(
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
+
+// List Invite DTOs
+public record CreateInviteRequest(
+    Guid InviteeUserId
+);
+
+public record InviteResponse(
+    Guid Id,
+    Guid ListId,
+    Guid InviterUserId,
+    Guid InviteeUserId,
+    string Status,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
+);

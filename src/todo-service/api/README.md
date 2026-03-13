@@ -30,6 +30,13 @@ RESTful API service for managing todo lists and items with role-based access con
 - `POST /api/lists/{id}/members` - Add member to list (owner only)
 - `DELETE /api/lists/{id}/members/{memberId}` - Remove member (owner only)
 
+### List Invitations (INIT-007)
+- `POST /api/lists/{listId}/invites` - Create invitation to share list as viewer (owner/editor only)
+- `GET /api/invites/{inviteId}` - Get invitation details (inviter/invitee only)
+- `POST /api/invites/{inviteId}/accept` - Accept invitation and gain viewer access (invitee only)
+- `DELETE /api/invites/{inviteId}` - Cancel (inviter) or reject (invitee) invitation
+- `DELETE /api/lists/{listId}/access/{userId}` - Remove user's access to list (owner/editor only)
+
 ### Todos
 - `GET /api/lists/{listId}/todos` - Get all todos in a list
 - `GET /api/lists/{listId}/todos/{id}` - Get a specific todo
