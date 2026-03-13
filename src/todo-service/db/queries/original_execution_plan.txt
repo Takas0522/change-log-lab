@@ -1,0 +1,27 @@
+                                                         QUERY PLAN                                                          
+-----------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=25.95..27.35 rows=40 width=56) (actual time=0.104..0.105 rows=1 loops=1)
+   Group Key: (date_trunc('month'::text, t.updated_at))
+   Buffers: shared hit=5
+   ->  Sort  (cost=25.95..26.05 rows=40 width=25) (actual time=0.056..0.057 rows=33 loops=1)
+         Sort Key: (date_trunc('month'::text, t.updated_at)) DESC
+         Sort Method: quicksort  Memory: 27kB
+         Buffers: shared hit=5
+         ->  Hash Join  (cost=12.60..24.89 rows=40 width=25) (actual time=0.034..0.040 rows=33 loops=1)
+               Hash Cond: (l.id = t.list_id)
+               Buffers: shared hit=2
+               ->  Seq Scan on lists l  (cost=0.00..11.30 rows=130 width=16) (actual time=0.003..0.004 rows=9 loops=1)
+                     Buffers: shared hit=1
+               ->  Hash  (cost=12.10..12.10 rows=40 width=33) (actual time=0.015..0.016 rows=33 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 11kB
+                     Buffers: shared hit=1
+                     ->  Seq Scan on todos t  (cost=0.00..12.10 rows=40 width=33) (actual time=0.004..0.009 rows=33 loops=1)
+                           Filter: (created_at >= (now() - '2 years'::interval))
+                           Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=283 read=5
+ Planning Time: 1.338 ms
+ Execution Time: 0.159 ms
+(22 rows)
+
+Time: 5.332 ms
