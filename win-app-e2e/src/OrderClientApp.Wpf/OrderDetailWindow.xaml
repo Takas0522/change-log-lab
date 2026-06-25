@@ -1,0 +1,79 @@
+﻿<Window x:Class="OrderClientApp.Wpf.OrderDetailWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="発注詳細" Height="680" Width="980">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <WrapPanel Margin="0,0,0,8">
+                <TextBlock Text="発注番号" VerticalAlignment="Center" />
+                <TextBox x:Name="OrderNumberTextBox" Width="120" Margin="8,0,16,0" IsReadOnly="True" />
+                <TextBlock Text="発注日" VerticalAlignment="Center" />
+                <DatePicker x:Name="OrderedAtDatePicker" Width="140" Margin="8,0,16,0" />
+                <TextBlock Text="ステータス" VerticalAlignment="Center" />
+                <ComboBox x:Name="StatusComboBox" Width="140" DisplayMemberPath="Label" SelectedValuePath="Value" />
+            </WrapPanel>
+            <WrapPanel Margin="0,0,0,8">
+                <TextBlock Text="仕入先" VerticalAlignment="Center" />
+                <TextBox x:Name="SupplierTextBox" Width="260" Margin="8,0,16,0" />
+                <TextBlock Text="税率" VerticalAlignment="Center" />
+                <TextBox x:Name="TaxRateTextBox" Width="80" Margin="8,0,16,0" Text="0.1" />
+            </WrapPanel>
+            <WrapPanel>
+                <TextBlock Text="備考" VerticalAlignment="Top" />
+                <TextBox x:Name="NoteTextBox" Width="640" Height="50" Margin="8,0,0,0" TextWrapping="Wrap" AcceptsReturn="True" />
+            </WrapPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,12,0,12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <WrapPanel Grid.Row="0" Margin="0,0,0,8">
+                <Button Content="行追加" Width="90" Margin="0,0,8,0" Click="AddLineButton_Click" />
+                <Button Content="行削除" Width="90" Click="RemoveLineButton_Click" />
+            </WrapPanel>
+
+            <DataGrid Grid.Row="1"
+                      x:Name="LineItemsDataGrid"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="商品コード" Binding="{Binding ProductCode, UpdateSourceTrigger=PropertyChanged}" Width="150" />
+                    <DataGridTextColumn Header="商品名" Binding="{Binding ProductName, UpdateSourceTrigger=PropertyChanged}" Width="240" />
+                    <DataGridTextColumn Header="数量" Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" Width="80" />
+                    <DataGridTextColumn Header="単価(税抜)" Binding="{Binding UnitPriceExcludingTax, UpdateSourceTrigger=PropertyChanged}" Width="120" />
+                    <DataGridTextColumn Header="小計(税抜)" Binding="{Binding AmountExcludingTax}" IsReadOnly="True" Width="120" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <WrapPanel Grid.Row="2" Margin="0,8,0,8">
+                <TextBlock Text="テンプレート名" VerticalAlignment="Center" />
+                <TextBox x:Name="TemplateNameTextBox" Width="180" Margin="8,0,8,0" />
+                <Button Content="テンプレート保存" Width="130" Margin="0,0,8,0" Click="SaveTemplateButton_Click" />
+                <ComboBox x:Name="TemplateComboBox" Width="260" DisplayMemberPath="TemplateName" SelectedValuePath="Id" />
+                <Button Content="テンプレート読込" Width="120" Margin="8,0,0,0" Click="LoadTemplateButton_Click" />
+            </WrapPanel>
+
+            <WrapPanel Grid.Row="3">
+                <TextBlock x:Name="AmountTextBlock" FontWeight="SemiBold" />
+            </WrapPanel>
+        </Grid>
+
+        <DockPanel Grid.Row="2" LastChildFill="False">
+            <Button DockPanel.Dock="Right" Content="保存 (Ctrl+S)" Width="130" Click="SaveButton_Click" />
+        </DockPanel>
+    </Grid>
+</Window>

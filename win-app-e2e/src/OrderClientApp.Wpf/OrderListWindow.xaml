@@ -1,0 +1,64 @@
+﻿<Window x:Class="OrderClientApp.Wpf.OrderListWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="発注一覧" Height="600" Width="1100">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Vertical">
+            <WrapPanel Margin="0,0,0,8">
+                <TextBlock Text="ステータス" VerticalAlignment="Center" />
+                <ComboBox x:Name="StatusFilterComboBox" Width="180" Margin="8,0,16,0" DisplayMemberPath="Label" SelectedValuePath="Value" SelectionChanged="FiltersChanged" />
+                <TextBlock Text="日付(開始)" VerticalAlignment="Center" />
+                <DatePicker x:Name="FromDatePicker" Width="140" Margin="8,0,16,0" SelectedDateChanged="FiltersChanged" />
+                <TextBlock Text="日付(終了)" VerticalAlignment="Center" />
+                <DatePicker x:Name="ToDatePicker" Width="140" Margin="8,0,16,0" SelectedDateChanged="FiltersChanged" />
+                <TextBlock Text="件数" VerticalAlignment="Center" />
+                <ComboBox x:Name="PageSizeComboBox" Width="80" Margin="8,0,16,0" SelectionChanged="FiltersChanged">
+                    <ComboBoxItem Content="10" />
+                    <ComboBoxItem Content="50" />
+                    <ComboBoxItem Content="100" />
+                </ComboBox>
+                <Button Content="検索" Width="90" Click="SearchButton_Click" />
+            </WrapPanel>
+
+            <WrapPanel>
+                <Button Content="新規作成 (Ctrl+N)" Width="150" Margin="0,0,8,0" Click="CreateButton_Click" />
+                <Button Content="編集" Width="90" Margin="0,0,8,0" Click="EditButton_Click" />
+                <Button Content="削除(論理)" Width="100" Margin="0,0,8,0" Click="DeleteButton_Click" />
+                <Button Content="テンプレート保存" Width="130" Click="SaveTemplateButton_Click" />
+            </WrapPanel>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1"
+                  x:Name="OrdersDataGrid"
+                  Margin="0,12,0,12"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="発注番号" Binding="{Binding OrderNumber}" Width="120" />
+                <DataGridTextColumn Header="仕入先" Binding="{Binding SupplierName}" Width="200" />
+                <DataGridTextColumn Header="発注日" Binding="{Binding OrderedAt}" Width="130" />
+                <DataGridTextColumn Header="ステータス" Binding="{Binding StatusLabel}" Width="100" />
+                <DataGridTextColumn Header="税抜" Binding="{Binding AmountExcludingTax}" Width="100" />
+                <DataGridTextColumn Header="税込" Binding="{Binding AmountIncludingTax}" Width="100" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <DockPanel Grid.Row="2" LastChildFill="False">
+            <TextBlock x:Name="PagerInfoTextBlock" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                <Button x:Name="PreviousPageButton" Content="前へ" Width="80" Margin="0,0,8,0" Click="PreviousPageButton_Click" />
+                <Button x:Name="NextPageButton" Content="次へ" Width="80" Click="NextPageButton_Click" />
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

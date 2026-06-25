@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OrderClientApp.Application/OrderClientApp.Application.csproj" />
+    <Project Path="src/OrderClientApp.Domain/OrderClientApp.Domain.csproj" />
+    <Project Path="src/OrderClientApp.Infrastructure/OrderClientApp.Infrastructure.csproj" />
+    <Project Path="src/OrderClientApp.Wpf/OrderClientApp.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OrderClientApp.Domain.Tests/OrderClientApp.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
