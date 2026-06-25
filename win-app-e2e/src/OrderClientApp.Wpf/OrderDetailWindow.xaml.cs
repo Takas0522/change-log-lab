@@ -33,6 +33,9 @@ public partial class OrderDetailWindow : Window
         StatusComboBox.ItemsSource = new[]
         {
             new StatusSelectionItem("未処理", OrderStatus.Unprocessed),
+            new StatusSelectionItem("申請中", OrderStatus.PendingApproval),
+            new StatusSelectionItem("承認済み", OrderStatus.Approved),
+            new StatusSelectionItem("却下", OrderStatus.Rejected),
             new StatusSelectionItem("処理中", OrderStatus.Processing),
             new StatusSelectionItem("入荷待ち", OrderStatus.WaitingForArrival),
             new StatusSelectionItem("部分入荷", OrderStatus.PartiallyReceived),
@@ -77,9 +80,17 @@ public partial class OrderDetailWindow : Window
         OrderNumberTextBox.Text = order.OrderNumber;
         SupplierTextBox.Text = order.SupplierName;
         OrderedAtDatePicker.SelectedDate = order.OrderedAtUtc.LocalDateTime.Date;
+        ExpectedReceivingDatePicker.SelectedDate = order.ExpectedReceivingDateUtc?.LocalDateTime.Date;
         StatusComboBox.SelectedValue = order.Status;
         TaxRateTextBox.Text = order.TaxRate.ToString(CultureInfo.InvariantCulture);
         NoteTextBox.Text = order.Note ?? string.Empty;
+        DeliveryNoteNumberTextBox.Text = order.DeliveryNoteNumber ?? string.Empty;
+        DeliveryNoteDatePicker.SelectedDate = order.DeliveryNoteDateUtc?.LocalDateTime.Date;
+        InvoiceNumberTextBox.Text = order.InvoiceNumber ?? string.Empty;
+        InvoiceDatePicker.SelectedDate = order.InvoiceDateUtc?.LocalDateTime.Date;
+        BudgetAlertTextBlock.Text = order.BudgetExceeded
+            ? "予算超過アラート"
+            : order.RequiresApproval ? "承認が必要です" : string.Empty;
 
         _lineItems.Clear();
         foreach (var lineItem in order.LineItems)
@@ -110,6 +121,8 @@ public partial class OrderDetailWindow : Window
         try
         {
             var orderedAt = OrderedAtDatePicker.SelectedDate ?? DateTime.Today;
+            var deliveryNoteDate = DeliveryNoteDatePicker.SelectedDate;
+            var invoiceDate = InvoiceDatePicker.SelectedDate;
             var taxRate = decimal.Parse(TaxRateTextBox.Text, CultureInfo.InvariantCulture);
             var lineItems = _lineItems
                 .Where(x => !string.IsNullOrWhiteSpace(x.ProductCode) && !string.IsNullOrWhiteSpace(x.ProductName))
@@ -126,8 +139,15 @@ public partial class OrderDetailWindow : Window
                     _orderId.Value,
                     SupplierTextBox.Text,
                     new DateTimeOffset(orderedAt, TimeSpan.Zero),
+                    ExpectedReceivingDatePicker.SelectedDate.HasValue
+                        ? new DateTimeOffset(ExpectedReceivingDatePicker.SelectedDate.Value, TimeSpan.Zero)
+                        : null,
                     (OrderStatus)(StatusComboBox.SelectedValue ?? OrderStatus.Unprocessed),
                     NoteTextBox.Text,
+                    DeliveryNoteNumberTextBox.Text,
+                    deliveryNoteDate.HasValue ? new DateTimeOffset(deliveryNoteDate.Value, TimeSpan.Zero) : null,
+                    InvoiceNumberTextBox.Text,
+                    invoiceDate.HasValue ? new DateTimeOffset(invoiceDate.Value, TimeSpan.Zero) : null,
                     taxRate,
                     lineItems));
             }
@@ -137,7 +157,14 @@ public partial class OrderDetailWindow : Window
                     _authenticatedUser.UserId,
                     SupplierTextBox.Text,
                     new DateTimeOffset(orderedAt, TimeSpan.Zero),
+                    ExpectedReceivingDatePicker.SelectedDate.HasValue
+                        ? new DateTimeOffset(ExpectedReceivingDatePicker.SelectedDate.Value, TimeSpan.Zero)
+                        : null,
                     NoteTextBox.Text,
+                    DeliveryNoteNumberTextBox.Text,
+                    deliveryNoteDate.HasValue ? new DateTimeOffset(deliveryNoteDate.Value, TimeSpan.Zero) : null,
+                    InvoiceNumberTextBox.Text,
+                    invoiceDate.HasValue ? new DateTimeOffset(invoiceDate.Value, TimeSpan.Zero) : null,
                     taxRate,
                     lineItems));
                 OrderNumberTextBox.Text = created.OrderNumber;
@@ -148,7 +175,14 @@ public partial class OrderDetailWindow : Window
                     _authenticatedUser.UserId,
                     SupplierTextBox.Text,
                     new DateTimeOffset(orderedAt, TimeSpan.Zero),
+                    ExpectedReceivingDatePicker.SelectedDate.HasValue
+                        ? new DateTimeOffset(ExpectedReceivingDatePicker.SelectedDate.Value, TimeSpan.Zero)
+                        : null,
                     NoteTextBox.Text,
+                    DeliveryNoteNumberTextBox.Text,
+                    deliveryNoteDate.HasValue ? new DateTimeOffset(deliveryNoteDate.Value, TimeSpan.Zero) : null,
+                    InvoiceNumberTextBox.Text,
+                    invoiceDate.HasValue ? new DateTimeOffset(invoiceDate.Value, TimeSpan.Zero) : null,
                     taxRate,
                     lineItems));
                 OrderNumberTextBox.Text = created.OrderNumber;
@@ -242,6 +276,34 @@ public partial class OrderDetailWindow : Window
 
     private async void SaveButton_Click(object sender, RoutedEventArgs e)
         => await SaveAsync();
+
+    private async void ReceiveAllButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_orderId.HasValue)
+        {
+            return;
+        }
+
+        var order = await _orderService.GetByIdAsync(_orderId.Value, includeDeleted: true);
+        if (order is null)
+        {
+            return;
+        }
+
+        var lines = order.LineItems
+            .Where(x => x.RemainingQuantity > 0)
+            .Select(x => new ConfirmReceivingLineInput(x.Id, x.RemainingQuantity))
+            .ToArray();
+        if (lines.Length == 0)
+        {
+            MessageBox.Show("入荷対象がありません。", "情報", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        await _orderService.ConfirmReceivingAsync(new ConfirmReceivingRequest(order.Id, lines));
+        MessageBox.Show("入荷確認を登録しました。", "完了", MessageBoxButton.OK, MessageBoxImage.Information);
+        await LoadOrderAsync(order.Id);
+    }
 
     private void UpdateAmounts()
     {

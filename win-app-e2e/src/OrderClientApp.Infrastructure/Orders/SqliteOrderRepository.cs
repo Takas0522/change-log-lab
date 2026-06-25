@@ -28,12 +28,14 @@ public sealed class SqliteOrderRepository : IOrderRepository
             INSERT INTO Orders
             (
                 Id, OrderNumber, CreatedByUserId, SupplierName, OrderedAtUtc, Status,
-                Note, TaxRate, IsDeleted, DeletedAtUtc, CreatedAtUtc, UpdatedAtUtc
+                ExpectedReceivingDateUtc, RejectionReason, Note, DeliveryNoteNumber, DeliveryNoteDateUtc, InvoiceNumber, InvoiceDateUtc,
+                TaxRate, IsDeleted, DeletedAtUtc, CreatedAtUtc, UpdatedAtUtc
             )
             VALUES
             (
                 @id, @orderNumber, @createdByUserId, @supplierName, @orderedAtUtc, @status,
-                @note, @taxRate, @isDeleted, @deletedAtUtc, @createdAtUtc, @updatedAtUtc
+                @expectedReceivingDateUtc, @rejectionReason, @note, @deliveryNoteNumber, @deliveryNoteDateUtc, @invoiceNumber, @invoiceDateUtc,
+                @taxRate, @isDeleted, @deletedAtUtc, @createdAtUtc, @updatedAtUtc
             );
             """;
         AddOrderParameters(orderCommand, order);
@@ -63,7 +65,13 @@ public sealed class SqliteOrderRepository : IOrderRepository
                 SupplierName = @supplierName,
                 OrderedAtUtc = @orderedAtUtc,
                 Status = @status,
+                ExpectedReceivingDateUtc = @expectedReceivingDateUtc,
+                RejectionReason = @rejectionReason,
                 Note = @note,
+                DeliveryNoteNumber = @deliveryNoteNumber,
+                DeliveryNoteDateUtc = @deliveryNoteDateUtc,
+                InvoiceNumber = @invoiceNumber,
+                InvoiceDateUtc = @invoiceDateUtc,
                 TaxRate = @taxRate,
                 IsDeleted = @isDeleted,
                 DeletedAtUtc = @deletedAtUtc,
@@ -95,7 +103,8 @@ public sealed class SqliteOrderRepository : IOrderRepository
         await using var orderCommand = connection.CreateCommand();
         orderCommand.CommandText = """
             SELECT Id, OrderNumber, CreatedByUserId, SupplierName, OrderedAtUtc, Status,
-                   Note, TaxRate, IsDeleted, DeletedAtUtc, CreatedAtUtc, UpdatedAtUtc
+                   ExpectedReceivingDateUtc, RejectionReason, Note, DeliveryNoteNumber, DeliveryNoteDateUtc, InvoiceNumber, InvoiceDateUtc,
+                   TaxRate, IsDeleted, DeletedAtUtc, CreatedAtUtc, UpdatedAtUtc
             FROM Orders
             WHERE Id = @id
               AND (@includeDeleted = 1 OR IsDeleted = 0)
@@ -123,7 +132,8 @@ public sealed class SqliteOrderRepository : IOrderRepository
         await using var command = connection.CreateCommand();
         command.CommandText = $"""
             SELECT Id, OrderNumber, CreatedByUserId, SupplierName, OrderedAtUtc, Status,
-                   Note, TaxRate, IsDeleted, DeletedAtUtc, CreatedAtUtc, UpdatedAtUtc
+                   ExpectedReceivingDateUtc, RejectionReason, Note, DeliveryNoteNumber, DeliveryNoteDateUtc, InvoiceNumber, InvoiceDateUtc,
+                   TaxRate, IsDeleted, DeletedAtUtc, CreatedAtUtc, UpdatedAtUtc
             FROM Orders
             {whereClause}
             ORDER BY OrderedAtUtc DESC, CreatedAtUtc DESC
@@ -177,6 +187,33 @@ public sealed class SqliteOrderRepository : IOrderRepository
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    public async Task<decimal> SumAmountIncludingTaxAsync(DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken = default)
+    {
+        await using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT
+                COALESCE(SUM(
+                    (SELECT COALESCE(SUM(li.Quantity * li.UnitPriceExcludingTax), 0)
+                     FROM OrderLineItems li
+                     WHERE li.OrderId = o.Id
+                    ) * (1 + o.TaxRate)
+                ), 0)
+            FROM Orders o
+            WHERE o.IsDeleted = 0
+              AND o.Status != @canceled
+              AND o.OrderedAtUtc >= @fromUtc
+              AND o.OrderedAtUtc <= @toUtc;
+            """;
+        command.Parameters.AddWithValue("@canceled", (int)OrderStatus.Canceled);
+        command.Parameters.AddWithValue("@fromUtc", fromUtc.ToUniversalTime().ToString("O"));
+        command.Parameters.AddWithValue("@toUtc", toUtc.ToUniversalTime().ToString("O"));
+        var scalar = await command.ExecuteScalarAsync(cancellationToken);
+        return scalar is null or DBNull ? 0m : Convert.ToDecimal(scalar);
+    }
+
     private static async Task InsertLineItemAsync(
         SqliteConnection connection,
         SqliteTransaction transaction,
@@ -188,15 +225,16 @@ public sealed class SqliteOrderRepository : IOrderRepository
         command.Transaction = transaction;
         command.CommandText = """
             INSERT INTO OrderLineItems
-            (Id, OrderId, ProductCode, ProductName, Quantity, UnitPriceExcludingTax)
+            (Id, OrderId, ProductCode, ProductName, Quantity, ReceivedQuantity, UnitPriceExcludingTax)
             VALUES
-            (@id, @orderId, @productCode, @productName, @quantity, @unitPriceExcludingTax);
+            (@id, @orderId, @productCode, @productName, @quantity, @receivedQuantity, @unitPriceExcludingTax);
             """;
         command.Parameters.AddWithValue("@id", lineItem.Id.ToString());
         command.Parameters.AddWithValue("@orderId", orderId.ToString());
         command.Parameters.AddWithValue("@productCode", lineItem.ProductCode);
         command.Parameters.AddWithValue("@productName", lineItem.ProductName);
         command.Parameters.AddWithValue("@quantity", lineItem.Quantity);
+        command.Parameters.AddWithValue("@receivedQuantity", lineItem.ReceivedQuantity);
         command.Parameters.AddWithValue("@unitPriceExcludingTax", lineItem.UnitPriceExcludingTax);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -209,7 +247,13 @@ public sealed class SqliteOrderRepository : IOrderRepository
         command.Parameters.AddWithValue("@supplierName", order.SupplierName);
         command.Parameters.AddWithValue("@orderedAtUtc", order.OrderedAtUtc.ToUniversalTime().ToString("O"));
         command.Parameters.AddWithValue("@status", (int)order.Status);
+        command.Parameters.AddWithValue("@expectedReceivingDateUtc", order.ExpectedReceivingDateUtc?.ToUniversalTime().ToString("O") ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@rejectionReason", order.RejectionReason ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@note", order.Note ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@deliveryNoteNumber", order.DeliveryNoteNumber ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@deliveryNoteDateUtc", order.DeliveryNoteDateUtc?.ToUniversalTime().ToString("O") ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@invoiceNumber", order.InvoiceNumber ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@invoiceDateUtc", order.InvoiceDateUtc?.ToUniversalTime().ToString("O") ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@taxRate", order.TaxRate);
         command.Parameters.AddWithValue("@isDeleted", order.IsDeleted ? 1 : 0);
         command.Parameters.AddWithValue("@deletedAtUtc", order.DeletedAtUtc?.ToUniversalTime().ToString("O") ?? (object)DBNull.Value);
@@ -268,7 +312,22 @@ public sealed class SqliteOrderRepository : IOrderRepository
         var orderId = Guid.Parse(reader.GetString(0));
         var lineItems = await GetLineItemsAsync(connection, orderId, cancellationToken);
 
-        var deletedAtRaw = reader.GetValue(9);
+        var expectedReceivingDateRaw = reader.GetValue(6);
+        DateTimeOffset? expectedReceivingDateUtc = expectedReceivingDateRaw is DBNull
+            ? null
+            : DateTimeOffset.Parse((string)expectedReceivingDateRaw);
+
+        var deliveryNoteDateRaw = reader.GetValue(10);
+        DateTimeOffset? deliveryNoteDateUtc = deliveryNoteDateRaw is DBNull
+            ? null
+            : DateTimeOffset.Parse((string)deliveryNoteDateRaw);
+
+        var invoiceDateRaw = reader.GetValue(12);
+        DateTimeOffset? invoiceDateUtc = invoiceDateRaw is DBNull
+            ? null
+            : DateTimeOffset.Parse((string)invoiceDateRaw);
+
+        var deletedAtRaw = reader.GetValue(15);
         DateTimeOffset? deletedAtUtc = deletedAtRaw is DBNull
             ? null
             : DateTimeOffset.Parse((string)deletedAtRaw);
@@ -280,20 +339,26 @@ public sealed class SqliteOrderRepository : IOrderRepository
             reader.GetString(3),
             DateTimeOffset.Parse(reader.GetString(4)),
             (OrderStatus)Convert.ToInt32(reader.GetInt64(5)),
-            reader.GetValue(6) is DBNull ? null : reader.GetString(6),
-            Convert.ToDecimal(reader.GetDouble(7)),
+            expectedReceivingDateUtc,
+            reader.GetValue(7) is DBNull ? null : reader.GetString(7),
+            reader.GetValue(8) is DBNull ? null : reader.GetString(8),
+            reader.GetValue(9) is DBNull ? null : reader.GetString(9),
+            deliveryNoteDateUtc,
+            reader.GetValue(11) is DBNull ? null : reader.GetString(11),
+            invoiceDateUtc,
+            Convert.ToDecimal(reader.GetDouble(13)),
             lineItems,
-            reader.GetInt64(8) == 1,
+            reader.GetInt64(14) == 1,
             deletedAtUtc,
-            DateTimeOffset.Parse(reader.GetString(10)),
-            DateTimeOffset.Parse(reader.GetString(11)));
+            DateTimeOffset.Parse(reader.GetString(16)),
+            DateTimeOffset.Parse(reader.GetString(17)));
     }
 
     private static async Task<IReadOnlyCollection<OrderLineItem>> GetLineItemsAsync(SqliteConnection connection, Guid orderId, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT Id, ProductCode, ProductName, Quantity, UnitPriceExcludingTax
+            SELECT Id, ProductCode, ProductName, Quantity, ReceivedQuantity, UnitPriceExcludingTax
             FROM OrderLineItems
             WHERE OrderId = @orderId
             ORDER BY ProductCode;
@@ -309,7 +374,8 @@ public sealed class SqliteOrderRepository : IOrderRepository
                 reader.GetString(1),
                 reader.GetString(2),
                 Convert.ToInt32(reader.GetInt64(3)),
-                Convert.ToDecimal(reader.GetDouble(4))));
+                Convert.ToDecimal(reader.GetDouble(5)),
+                Convert.ToInt32(reader.GetInt64(4))));
         }
 
         return lineItems;

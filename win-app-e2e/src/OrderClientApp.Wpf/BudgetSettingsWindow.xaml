@@ -1,0 +1,28 @@
+<Window x:Class="OrderClientApp.Wpf.BudgetSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="予算設定" Height="280" Width="500">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <WrapPanel Margin="0,0,0,12">
+            <TextBlock Text="承認閾値" VerticalAlignment="Center" Width="140" />
+            <TextBox x:Name="ApprovalThresholdTextBox" Width="220" />
+        </WrapPanel>
+        <WrapPanel Grid.Row="1" Margin="0,0,0,12">
+            <TextBlock Text="月次予算上限" VerticalAlignment="Center" Width="140" />
+            <TextBox x:Name="MonthlyLimitTextBox" Width="220" />
+        </WrapPanel>
+        <WrapPanel Grid.Row="2" Margin="0,0,0,12">
+            <TextBlock Text="年次予算上限" VerticalAlignment="Center" Width="140" />
+            <TextBox x:Name="YearlyLimitTextBox" Width="220" />
+        </WrapPanel>
+        <TextBlock x:Name="InfoTextBlock" Grid.Row="3" Margin="0,0,0,12" Foreground="#1F2937" />
+        <Button Grid.Row="4" HorizontalAlignment="Right" Width="120" Content="保存" Click="SaveButton_Click" />
+    </Grid>
+</Window>

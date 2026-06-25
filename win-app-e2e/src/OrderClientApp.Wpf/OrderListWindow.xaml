@@ -32,6 +32,7 @@
             <WrapPanel>
                 <Button Content="新規作成 (Ctrl+N)" Width="150" Margin="0,0,8,0" Click="CreateButton_Click" />
                 <Button Content="編集" Width="90" Margin="0,0,8,0" Click="EditButton_Click" />
+                <Button Content="入荷確認" Width="100" Margin="0,0,8,0" Click="ReceiveButton_Click" />
                 <Button Content="削除(論理)" Width="100" Margin="0,0,8,0" Click="DeleteButton_Click" />
                 <Button Content="テンプレート保存" Width="130" Click="SaveTemplateButton_Click" />
             </WrapPanel>

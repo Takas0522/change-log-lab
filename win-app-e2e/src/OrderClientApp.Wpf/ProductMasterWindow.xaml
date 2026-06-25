@@ -1,0 +1,64 @@
+<Window x:Class="OrderClientApp.Wpf.ProductMasterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="商品マスタ" Height="640" Width="980">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <WrapPanel Margin="0,0,0,12">
+            <TextBlock Text="コード" VerticalAlignment="Center" />
+            <TextBox x:Name="CodeFilterTextBox" Width="120" Margin="8,0,8,0" />
+            <TextBlock Text="名称" VerticalAlignment="Center" />
+            <TextBox x:Name="NameFilterTextBox" Width="160" Margin="8,0,8,0" />
+            <TextBlock Text="カテゴリ" VerticalAlignment="Center" />
+            <TextBox x:Name="CategoryFilterTextBox" Width="140" Margin="8,0,8,0" />
+            <Button Content="検索" Width="80" Margin="0,0,8,0" Click="SearchButton_Click" />
+            <Button Content="CSV取込" Width="100" Click="ImportCsvButton_Click" />
+        </WrapPanel>
+
+        <DataGrid Grid.Row="1"
+                  x:Name="ProductsDataGrid"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionChanged="ProductsDataGrid_SelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="コード" Binding="{Binding ProductCode}" Width="110" />
+                <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="160" />
+                <DataGridTextColumn Header="単価(税抜)" Binding="{Binding UnitPriceExcludingTax}" Width="100" />
+                <DataGridTextColumn Header="単位" Binding="{Binding Unit}" Width="80" />
+                <DataGridTextColumn Header="カテゴリ" Binding="{Binding Category}" Width="120" />
+                <DataGridTextColumn Header="発注点" Binding="{Binding ReorderPoint}" Width="80" />
+                <DataGridTextColumn Header="備考" Binding="{Binding Notes}" Width="220" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="2" Margin="0,12,0,0">
+            <WrapPanel Margin="0,0,0,8">
+                <TextBlock Text="コード" VerticalAlignment="Center" />
+                <TextBox x:Name="CodeTextBox" Width="120" Margin="8,0,16,0" />
+                <TextBlock Text="名称" VerticalAlignment="Center" />
+                <TextBox x:Name="NameTextBox" Width="180" Margin="8,0,16,0" />
+                <TextBlock Text="単価(税抜)" VerticalAlignment="Center" />
+                <TextBox x:Name="UnitPriceTextBox" Width="120" Margin="8,0,16,0" />
+                <TextBlock Text="単位" VerticalAlignment="Center" />
+                <TextBox x:Name="UnitTextBox" Width="80" Margin="8,0,16,0" />
+            </WrapPanel>
+            <WrapPanel Margin="0,0,0,8">
+                <TextBlock Text="カテゴリ" VerticalAlignment="Center" />
+                <TextBox x:Name="CategoryTextBox" Width="140" Margin="8,0,16,0" />
+                <TextBlock Text="発注点" VerticalAlignment="Center" />
+                <TextBox x:Name="ReorderPointTextBox" Width="90" Margin="8,0,16,0" />
+                <TextBlock Text="備考" VerticalAlignment="Center" />
+                <TextBox x:Name="NotesTextBox" Width="320" Margin="8,0,16,0" />
+                <Button Content="新規" Width="80" Margin="0,0,8,0" Click="CreateButton_Click" />
+                <Button Content="更新" Width="80" Margin="0,0,8,0" Click="UpdateButton_Click" />
+                <Button Content="削除" Width="80" Click="DeleteButton_Click" />
+            </WrapPanel>
+            <TextBlock x:Name="ImportResultTextBlock" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</Window>

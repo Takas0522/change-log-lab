@@ -41,7 +41,12 @@ public sealed class OrderPersistenceIntegrationTests : IDisposable
                 Guid.NewGuid(),
                 "仕入先A",
                 DateTimeOffset.UtcNow,
+                null,
                 "integration",
+                "DN-001",
+                DateTimeOffset.UtcNow,
+                "INV-001",
+                DateTimeOffset.UtcNow,
                 0.1m,
                 new[]
                 {

@@ -18,6 +18,8 @@
                 <TextBox x:Name="OrderNumberTextBox" Width="120" Margin="8,0,16,0" IsReadOnly="True" />
                 <TextBlock Text="発注日" VerticalAlignment="Center" />
                 <DatePicker x:Name="OrderedAtDatePicker" Width="140" Margin="8,0,16,0" />
+                <TextBlock Text="入荷予定日" VerticalAlignment="Center" />
+                <DatePicker x:Name="ExpectedReceivingDatePicker" Width="140" Margin="8,0,16,0" />
                 <TextBlock Text="ステータス" VerticalAlignment="Center" />
                 <ComboBox x:Name="StatusComboBox" Width="140" DisplayMemberPath="Label" SelectedValuePath="Value" />
             </WrapPanel>
@@ -26,6 +28,16 @@
                 <TextBox x:Name="SupplierTextBox" Width="260" Margin="8,0,16,0" />
                 <TextBlock Text="税率" VerticalAlignment="Center" />
                 <TextBox x:Name="TaxRateTextBox" Width="80" Margin="8,0,16,0" Text="0.1" />
+            </WrapPanel>
+            <WrapPanel Margin="0,0,0,8">
+                <TextBlock Text="納品書番号" VerticalAlignment="Center" />
+                <TextBox x:Name="DeliveryNoteNumberTextBox" Width="140" Margin="8,0,16,0" />
+                <TextBlock Text="納品日" VerticalAlignment="Center" />
+                <DatePicker x:Name="DeliveryNoteDatePicker" Width="140" Margin="8,0,16,0" />
+                <TextBlock Text="請求書番号" VerticalAlignment="Center" />
+                <TextBox x:Name="InvoiceNumberTextBox" Width="140" Margin="8,0,16,0" />
+                <TextBlock Text="請求日" VerticalAlignment="Center" />
+                <DatePicker x:Name="InvoiceDatePicker" Width="140" />
             </WrapPanel>
             <WrapPanel>
                 <TextBlock Text="備考" VerticalAlignment="Top" />
@@ -69,10 +81,12 @@
 
             <WrapPanel Grid.Row="3">
                 <TextBlock x:Name="AmountTextBlock" FontWeight="SemiBold" />
+                <TextBlock x:Name="BudgetAlertTextBlock" Margin="16,0,0,0" Foreground="#B91C1C" FontWeight="Bold" />
             </WrapPanel>
         </Grid>
 
         <DockPanel Grid.Row="2" LastChildFill="False">
+            <Button DockPanel.Dock="Right" Content="入荷確認(全量)" Width="130" Margin="0,0,8,0" Click="ReceiveAllButton_Click" />
             <Button DockPanel.Dock="Right" Content="保存 (Ctrl+S)" Width="130" Click="SaveButton_Click" />
         </DockPanel>
     </Grid>

@@ -7,7 +7,8 @@ public sealed class OrderLineItem
         string productCode,
         string productName,
         int quantity,
-        decimal unitPriceExcludingTax)
+        decimal unitPriceExcludingTax,
+        int receivedQuantity = 0)
     {
         if (id == Guid.Empty)
         {
@@ -34,11 +35,17 @@ public sealed class OrderLineItem
             throw new ArgumentOutOfRangeException(nameof(unitPriceExcludingTax));
         }
 
+        if (receivedQuantity < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(receivedQuantity));
+        }
+
         Id = id;
         ProductCode = productCode.Trim();
         ProductName = productName.Trim();
         Quantity = quantity;
         UnitPriceExcludingTax = unitPriceExcludingTax;
+        ReceivedQuantity = receivedQuantity;
     }
 
     public Guid Id { get; }
@@ -51,5 +58,19 @@ public sealed class OrderLineItem
 
     public decimal UnitPriceExcludingTax { get; }
 
+    public int ReceivedQuantity { get; private set; }
+
+    public int RemainingQuantity => Math.Max(0, Quantity - ReceivedQuantity);
+
     public decimal AmountExcludingTax => UnitPriceExcludingTax * Quantity;
+
+    public void RegisterReceiving(int quantity)
+    {
+        if (quantity <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(quantity));
+        }
+
+        ReceivedQuantity += quantity;
+    }
 }

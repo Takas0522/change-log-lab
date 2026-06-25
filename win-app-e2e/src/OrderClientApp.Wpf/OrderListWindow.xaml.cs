@@ -24,6 +24,9 @@ public partial class OrderListWindow : Window
         {
             new StatusFilterItem("すべて", null),
             new StatusFilterItem("未処理", OrderStatus.Unprocessed),
+            new StatusFilterItem("申請中", OrderStatus.PendingApproval),
+            new StatusFilterItem("承認済み", OrderStatus.Approved),
+            new StatusFilterItem("却下", OrderStatus.Rejected),
             new StatusFilterItem("処理中", OrderStatus.Processing),
             new StatusFilterItem("入荷待ち", OrderStatus.WaitingForArrival),
             new StatusFilterItem("部分入荷", OrderStatus.PartiallyReceived),
@@ -36,7 +39,15 @@ public partial class OrderListWindow : Window
         CommandBindings.Add(new CommandBinding(ApplicationCommands.New, (_, _) => OpenOrderDetail(null)));
         InputBindings.Add(new KeyBinding(ApplicationCommands.New, new KeyGesture(Key.N, ModifierKeys.Control)));
 
-        Loaded += async (_, _) => await LoadOrdersAsync();
+        Loaded += async (_, _) =>
+        {
+            await LoadOrdersAsync();
+            var alerts = await _orderService.GetInventoryAlertsAsync();
+            if (alerts.Count > 0)
+            {
+                MessageBox.Show($"在庫アラート: {alerts.Count} 件の商品が発注点を下回っています。", "在庫アラート", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        };
     }
 
     private async Task LoadOrdersAsync()
@@ -153,6 +164,33 @@ public partial class OrderListWindow : Window
 
         await _orderService.SaveTemplateAsync(request);
         MessageBox.Show("テンプレートを保存しました。", "完了", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private async void ReceiveButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (OrdersDataGrid.SelectedItem is not OrderRowViewModel row)
+        {
+            return;
+        }
+
+        var order = await _orderService.GetByIdAsync(row.Id, includeDeleted: true);
+        if (order is null)
+        {
+            return;
+        }
+
+        var lines = order.LineItems
+            .Where(x => x.RemainingQuantity > 0)
+            .Select(x => new ConfirmReceivingLineInput(x.Id, x.RemainingQuantity))
+            .ToArray();
+        if (lines.Length == 0)
+        {
+            MessageBox.Show("入荷対象がありません。", "情報", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        await _orderService.ConfirmReceivingAsync(new ConfirmReceivingRequest(order.Id, lines));
+        await LoadOrdersAsync();
     }
 
     private void FiltersChanged(object sender, RoutedEventArgs e)

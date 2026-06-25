@@ -15,4 +15,6 @@ public interface IOrderRepository
     Task<int> CountAsync(OrderListQuery query, CancellationToken cancellationToken = default);
 
     Task SoftDeleteAsync(Guid orderId, DateTimeOffset deletedAtUtc, CancellationToken cancellationToken = default);
+
+    Task<decimal> SumAmountIncludingTaxAsync(DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken = default);
 }

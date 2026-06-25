@@ -1,0 +1,64 @@
+<Window x:Class="OrderClientApp.Wpf.SupplierMasterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="仕入先マスタ" Height="680" Width="980">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <WrapPanel Margin="0,0,0,12">
+            <TextBlock Text="キーワード" VerticalAlignment="Center" />
+            <TextBox x:Name="KeywordTextBox" Width="200" Margin="8,0,8,0" />
+            <Button Content="検索" Width="80" Click="SearchButton_Click" />
+        </WrapPanel>
+
+        <DataGrid Grid.Row="1"
+                  x:Name="SuppliersDataGrid"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionChanged="SuppliersDataGrid_SelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="会社名" Binding="{Binding CompanyName}" Width="180" />
+                <DataGridTextColumn Header="担当者" Binding="{Binding ContactName}" Width="120" />
+                <DataGridTextColumn Header="Email" Binding="{Binding ContactEmail}" Width="180" />
+                <DataGridTextColumn Header="電話" Binding="{Binding ContactPhone}" Width="120" />
+                <DataGridTextColumn Header="備考" Binding="{Binding Notes}" Width="220" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="2" Margin="0,12,0,12">
+            <WrapPanel Margin="0,0,0,8">
+                <TextBlock Text="会社名" VerticalAlignment="Center" />
+                <TextBox x:Name="CompanyNameTextBox" Width="180" Margin="8,0,16,0" />
+                <TextBlock Text="担当者" VerticalAlignment="Center" />
+                <TextBox x:Name="ContactNameTextBox" Width="120" Margin="8,0,16,0" />
+                <TextBlock Text="Email" VerticalAlignment="Center" />
+                <TextBox x:Name="ContactEmailTextBox" Width="180" Margin="8,0,16,0" />
+                <TextBlock Text="電話" VerticalAlignment="Center" />
+                <TextBox x:Name="ContactPhoneTextBox" Width="120" Margin="8,0,16,0" />
+            </WrapPanel>
+            <WrapPanel>
+                <TextBlock Text="備考" VerticalAlignment="Center" />
+                <TextBox x:Name="NotesTextBox" Width="320" Margin="8,0,16,0" />
+                <Button Content="新規" Width="80" Margin="0,0,8,0" Click="CreateButton_Click" />
+                <Button Content="更新" Width="80" Margin="0,0,8,0" Click="UpdateButton_Click" />
+                <Button Content="削除" Width="80" Click="DeleteButton_Click" />
+            </WrapPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3">
+            <TextBlock Text="商品別 仕入先単価 / 優先仕入先設定" FontWeight="SemiBold" Margin="0,0,0,8" />
+            <WrapPanel>
+                <ComboBox x:Name="ProductComboBox" Width="220" DisplayMemberPath="DisplayName" SelectedValuePath="Id" Margin="0,0,8,0" />
+                <ComboBox x:Name="SupplierComboBox" Width="220" DisplayMemberPath="CompanyName" SelectedValuePath="Id" Margin="0,0,8,0" />
+                <TextBox x:Name="SupplierUnitPriceTextBox" Width="120" Margin="0,0,8,0" />
+                <Button Content="単価設定" Width="90" Margin="0,0,8,0" Click="SetPriceButton_Click" />
+                <Button Content="優先仕入先設定" Width="120" Click="SetPreferredSupplierButton_Click" />
+            </WrapPanel>
+        </StackPanel>
+    </Grid>
+</Window>

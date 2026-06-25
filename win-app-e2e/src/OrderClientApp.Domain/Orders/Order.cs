@@ -11,7 +11,13 @@ public sealed class Order
         string supplierName,
         DateTimeOffset orderedAtUtc,
         OrderStatus status,
+        DateTimeOffset? expectedReceivingDateUtc,
+        string? rejectionReason,
         string? note,
+        string? deliveryNoteNumber,
+        DateTimeOffset? deliveryNoteDateUtc,
+        string? invoiceNumber,
+        DateTimeOffset? invoiceDateUtc,
         decimal taxRate,
         IEnumerable<OrderLineItem> lineItems,
         bool isDeleted,
@@ -52,7 +58,13 @@ public sealed class Order
         SupplierName = supplierName.Trim();
         OrderedAtUtc = orderedAtUtc;
         Status = status;
+        ExpectedReceivingDateUtc = expectedReceivingDateUtc?.ToUniversalTime();
+        RejectionReason = string.IsNullOrWhiteSpace(rejectionReason) ? null : rejectionReason.Trim();
         Note = note?.Trim();
+        DeliveryNoteNumber = deliveryNoteNumber?.Trim();
+        DeliveryNoteDateUtc = deliveryNoteDateUtc;
+        InvoiceNumber = invoiceNumber?.Trim();
+        InvoiceDateUtc = invoiceDateUtc;
         TaxRate = taxRate;
         _lineItems = normalizedLineItems;
         IsDeleted = isDeleted;
@@ -75,6 +87,18 @@ public sealed class Order
 
     public string? Note { get; private set; }
 
+    public DateTimeOffset? ExpectedReceivingDateUtc { get; private set; }
+
+    public string? RejectionReason { get; private set; }
+
+    public string? DeliveryNoteNumber { get; private set; }
+
+    public DateTimeOffset? DeliveryNoteDateUtc { get; private set; }
+
+    public string? InvoiceNumber { get; private set; }
+
+    public DateTimeOffset? InvoiceDateUtc { get; private set; }
+
     public decimal TaxRate { get; private set; }
 
     public bool IsDeleted { get; private set; }
@@ -91,10 +115,16 @@ public sealed class Order
 
     public decimal AmountIncludingTax => decimal.Round(AmountExcludingTax * (1 + TaxRate), 2, MidpointRounding.AwayFromZero);
 
+    public bool IsFullyReceived => _lineItems.All(x => x.ReceivedQuantity >= x.Quantity);
+
     public void UpdateHeader(
         string supplierName,
         DateTimeOffset orderedAtUtc,
         string? note,
+        string? deliveryNoteNumber,
+        DateTimeOffset? deliveryNoteDateUtc,
+        string? invoiceNumber,
+        DateTimeOffset? invoiceDateUtc,
         decimal taxRate,
         DateTimeOffset nowUtc)
     {
@@ -111,6 +141,10 @@ public sealed class Order
         SupplierName = supplierName.Trim();
         OrderedAtUtc = orderedAtUtc;
         Note = note?.Trim();
+        DeliveryNoteNumber = deliveryNoteNumber?.Trim();
+        DeliveryNoteDateUtc = deliveryNoteDateUtc;
+        InvoiceNumber = invoiceNumber?.Trim();
+        InvoiceDateUtc = invoiceDateUtc;
         TaxRate = taxRate;
         UpdatedAtUtc = nowUtc;
     }
@@ -149,7 +183,10 @@ public sealed class Order
 
         var allowed = Status switch
         {
-            OrderStatus.Unprocessed => nextStatus is OrderStatus.Processing,
+            OrderStatus.Unprocessed => nextStatus is OrderStatus.PendingApproval or OrderStatus.Processing,
+            OrderStatus.PendingApproval => nextStatus is OrderStatus.Approved or OrderStatus.Rejected,
+            OrderStatus.Approved => nextStatus is OrderStatus.Processing,
+            OrderStatus.Rejected => nextStatus is OrderStatus.Unprocessed or OrderStatus.PendingApproval,
             OrderStatus.Processing => nextStatus is OrderStatus.WaitingForArrival,
             OrderStatus.WaitingForArrival => nextStatus is OrderStatus.PartiallyReceived or OrderStatus.Completed,
             OrderStatus.PartiallyReceived => nextStatus is OrderStatus.WaitingForArrival or OrderStatus.Completed,
@@ -162,6 +199,67 @@ public sealed class Order
         }
 
         Status = nextStatus;
+        if (nextStatus is OrderStatus.Unprocessed or OrderStatus.PendingApproval)
+        {
+            RejectionReason = null;
+        }
+        UpdatedAtUtc = nowUtc;
+    }
+
+    public void Reject(string reason, DateTimeOffset nowUtc)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new ArgumentException("Rejection reason is required.", nameof(reason));
+        }
+
+        if (Status != OrderStatus.PendingApproval)
+        {
+            throw new InvalidOperationException("Only pending approval order can be rejected.");
+        }
+
+        Status = OrderStatus.Rejected;
+        RejectionReason = reason.Trim();
+        UpdatedAtUtc = nowUtc;
+    }
+
+    public void SetExpectedReceivingDate(DateTimeOffset? expectedReceivingDateUtc, DateTimeOffset nowUtc)
+    {
+        ExpectedReceivingDateUtc = expectedReceivingDateUtc?.ToUniversalTime();
+        UpdatedAtUtc = nowUtc;
+    }
+
+    public void ConfirmReceiving(IReadOnlyDictionary<Guid, int> receivedByLineItemId, DateTimeOffset nowUtc)
+    {
+        ArgumentNullException.ThrowIfNull(receivedByLineItemId);
+        if (receivedByLineItemId.Count == 0)
+        {
+            throw new ArgumentException("At least one receiving entry is required.", nameof(receivedByLineItemId));
+        }
+
+        if (Status is not OrderStatus.WaitingForArrival and not OrderStatus.PartiallyReceived)
+        {
+            throw new InvalidOperationException("Receiving can only be confirmed from waiting/partial status.");
+        }
+
+        var touched = false;
+        foreach (var lineItem in _lineItems)
+        {
+            if (!receivedByLineItemId.TryGetValue(lineItem.Id, out var quantity) || quantity <= 0)
+            {
+                continue;
+            }
+
+            lineItem.RegisterReceiving(quantity);
+            touched = true;
+        }
+
+        if (!touched)
+        {
+            throw new InvalidOperationException("No receiving quantity was provided.");
+        }
+
+        Status = IsFullyReceived ? OrderStatus.Completed : OrderStatus.PartiallyReceived;
         UpdatedAtUtc = nowUtc;
     }
 
