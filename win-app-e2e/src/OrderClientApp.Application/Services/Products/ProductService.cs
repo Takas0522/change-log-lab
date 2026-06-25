@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using OrderClientApp.Application.Abstractions.Operations;
 using OrderClientApp.Application.Abstractions.Products;
 using OrderClientApp.Domain.Products;
 
@@ -8,11 +9,16 @@ namespace OrderClientApp.Application.Services.Products;
 public sealed class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
+    private readonly IOperationLogService _operationLogService;
     private readonly TimeProvider _timeProvider;
 
-    public ProductService(IProductRepository productRepository, TimeProvider? timeProvider = null)
+    public ProductService(
+        IProductRepository productRepository,
+        IOperationLogService operationLogService,
+        TimeProvider? timeProvider = null)
     {
         _productRepository = productRepository;
+        _operationLogService = operationLogService;
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
@@ -36,6 +42,7 @@ public sealed class ProductService : IProductService
             nowUtc);
 
         await _productRepository.AddAsync(product, cancellationToken);
+        await _operationLogService.LogAsync("Product", "Create", null, $"商品を作成しました: {product.ProductCode}", cancellationToken);
         return ToDto(product);
     }
 
@@ -57,17 +64,19 @@ public sealed class ProductService : IProductService
             _timeProvider.GetUtcNow());
 
         await _productRepository.UpdateAsync(product, cancellationToken);
+        await _operationLogService.LogAsync("Product", "Update", null, $"商品を更新しました: {product.ProductCode}", cancellationToken);
         return ToDto(product);
     }
 
-    public Task DeleteAsync(Guid productId, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(Guid productId, CancellationToken cancellationToken = default)
     {
         if (productId == Guid.Empty)
         {
             throw new ArgumentException("Product id is required.", nameof(productId));
         }
 
-        return _productRepository.DeleteAsync(productId, cancellationToken);
+        await _productRepository.DeleteAsync(productId, cancellationToken);
+        await _operationLogService.LogAsync("Product", "Delete", null, $"商品を削除しました: {productId}", cancellationToken);
     }
 
     public async Task<ProductDto?> GetByIdAsync(Guid productId, CancellationToken cancellationToken = default)

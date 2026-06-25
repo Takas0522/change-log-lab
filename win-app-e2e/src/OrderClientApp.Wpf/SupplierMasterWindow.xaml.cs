@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 using OrderClientApp.Application.Abstractions.Products;
 using OrderClientApp.Application.Abstractions.Suppliers;
+using MessageBox = System.Windows.MessageBox;
 
 namespace OrderClientApp.Wpf;
 

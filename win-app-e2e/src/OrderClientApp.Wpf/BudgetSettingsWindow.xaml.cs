@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using OrderClientApp.Application.Abstractions.Orders;
+using MessageBox = System.Windows.MessageBox;
 
 namespace OrderClientApp.Wpf;
 

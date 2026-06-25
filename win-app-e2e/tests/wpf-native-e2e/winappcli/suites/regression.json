@@ -1,0 +1,49 @@
+{
+  "suite": "regression",
+  "scenarios": [
+    {
+      "id": "REG-ORDER-EDIT-001",
+      "featureArea": "order-core",
+      "executionMode": "automated",
+      "tags": ["regression"],
+      "commandContract": [
+        "Create order",
+        "Edit line items and save",
+        "Assert recalculated totals"
+      ]
+    },
+    {
+      "id": "REG-APPROVAL-BUDGET-001",
+      "featureArea": "approval-inventory-budget",
+      "executionMode": "automated",
+      "tags": ["regression"],
+      "commandContract": [
+        "Set approval threshold and monthly budget",
+        "Create over-threshold order",
+        "Assert pending approval and budget warning"
+      ]
+    },
+    {
+      "id": "REG-MASTER-CSV-001",
+      "featureArea": "masters-analytics",
+      "executionMode": "automated",
+      "tags": ["regression"],
+      "commandContract": [
+        "Import products by CSV",
+        "Assert invalid rows reported",
+        "Assert valid rows persisted"
+      ]
+    },
+    {
+      "id": "REG-OPS-SETTINGS-001",
+      "featureArea": "ops-settings",
+      "executionMode": "placeholder",
+      "tags": ["regression", "manual"],
+      "commandContract": [
+        "Update company profile",
+        "Switch theme dark/light",
+        "Restart app and assert persisted settings"
+      ]
+    }
+  ]
+}

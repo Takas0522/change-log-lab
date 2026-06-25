@@ -1,0 +1,60 @@
+{
+  "suite": "smoke",
+  "scenarios": [
+    {
+      "id": "SMK-AUTH-001",
+      "featureArea": "auth",
+      "executionMode": "automated",
+      "tags": ["smoke", "critical"],
+      "commandContract": [
+        "Launch app",
+        "Login as general.user / General#2026",
+        "Assert dashboard shown"
+      ]
+    },
+    {
+      "id": "SMK-ORDER-001",
+      "featureArea": "order-core",
+      "executionMode": "automated",
+      "tags": ["smoke", "critical"],
+      "commandContract": [
+        "Open order list",
+        "Create order with single line",
+        "Assert order number generated"
+      ]
+    },
+    {
+      "id": "SMK-APPROVAL-001",
+      "featureArea": "approval-inventory-budget",
+      "executionMode": "automated",
+      "tags": ["smoke"],
+      "commandContract": [
+        "Create high-amount order",
+        "Approve as approver.user",
+        "Confirm receiving and assert completed"
+      ]
+    },
+    {
+      "id": "SMK-MASTER-001",
+      "featureArea": "masters-analytics",
+      "executionMode": "automated",
+      "tags": ["smoke"],
+      "commandContract": [
+        "Create product and supplier",
+        "Link preferred supplier",
+        "Assert dashboard analytics has aggregate"
+      ]
+    },
+    {
+      "id": "SMK-OPS-001",
+      "featureArea": "ops-settings",
+      "executionMode": "placeholder",
+      "tags": ["smoke", "manual"],
+      "commandContract": [
+        "Open settings screen",
+        "Run backup action",
+        "Assert backup file and completion message"
+      ]
+    }
+  ]
+}

@@ -99,6 +99,25 @@ public sealed class SqliteOrderDatabaseInitializer : IOrderDatabaseInitializer
                 UpdatedAtUtc TEXT NOT NULL
             );
 
+            CREATE TABLE IF NOT EXISTS AppSettings
+            (
+                Id INTEGER NOT NULL PRIMARY KEY CHECK (Id = 1),
+                CompanyName TEXT NOT NULL,
+                CompanyAddress TEXT NOT NULL,
+                Theme TEXT NOT NULL,
+                UpdatedAtUtc TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS OperationLogs
+            (
+                Id TEXT NOT NULL PRIMARY KEY,
+                Category TEXT NOT NULL,
+                Action TEXT NOT NULL,
+                Actor TEXT NULL,
+                Description TEXT NOT NULL,
+                CreatedAtUtc TEXT NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS Products
             (
                 Id TEXT NOT NULL PRIMARY KEY,
@@ -146,6 +165,8 @@ public sealed class SqliteOrderDatabaseInitializer : IOrderDatabaseInitializer
             CREATE INDEX IF NOT EXISTS IX_Products_Category ON Products(Category);
             CREATE INDEX IF NOT EXISTS IX_Products_PreferredSupplierId ON Products(PreferredSupplierId);
             CREATE INDEX IF NOT EXISTS IX_ProductSupplierPrices_SupplierId ON ProductSupplierPrices(SupplierId);
+            CREATE INDEX IF NOT EXISTS IX_OperationLogs_CreatedAtUtc ON OperationLogs(CreatedAtUtc DESC);
+            CREATE INDEX IF NOT EXISTS IX_OperationLogs_Category ON OperationLogs(Category);
             """;
         await command.ExecuteNonQueryAsync(cancellationToken);
 
@@ -165,6 +186,10 @@ public sealed class SqliteOrderDatabaseInitializer : IOrderDatabaseInitializer
             INSERT INTO BudgetSettings(Id, ApprovalThreshold, MonthlyLimit, YearlyLimit, UpdatedAtUtc)
             SELECT 1, 0, NULL, NULL, @updatedAtUtc
             WHERE NOT EXISTS (SELECT 1 FROM BudgetSettings WHERE Id = 1);
+
+            INSERT INTO AppSettings(Id, CompanyName, CompanyAddress, Theme, UpdatedAtUtc)
+            SELECT 1, '自社', '-', 'Light', @updatedAtUtc
+            WHERE NOT EXISTS (SELECT 1 FROM AppSettings WHERE Id = 1);
             """;
         seedCommand.Parameters.AddWithValue("@updatedAtUtc", DateTimeOffset.UtcNow.ToString("O"));
         await seedCommand.ExecuteNonQueryAsync(cancellationToken);

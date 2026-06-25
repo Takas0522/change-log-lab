@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using OrderClientApp.Application.DependencyInjection;
 using OrderClientApp.Application.Abstractions.Auth;
 using OrderClientApp.Application.Abstractions.Orders;
+using OrderClientApp.Application.Abstractions.Notifications;
+using OrderClientApp.Application.Abstractions.Settings;
 using OrderClientApp.Infrastructure.DependencyInjection;
 
 namespace OrderClientApp.Wpf;
@@ -26,6 +28,9 @@ public partial class App : System.Windows.Application
         initializer.InitializeAsync().GetAwaiter().GetResult();
         var orderInitializer = scope.ServiceProvider.GetRequiredService<IOrderDatabaseInitializer>();
         orderInitializer.InitializeAsync().GetAwaiter().GetResult();
+        var appSettingsService = scope.ServiceProvider.GetRequiredService<IAppSettingsService>();
+        var appSettings = appSettingsService.GetAsync().GetAwaiter().GetResult();
+        ThemeManager.ApplyTheme(appSettings.Theme);
 
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
         mainWindow.Show();
@@ -46,6 +51,7 @@ public partial class App : System.Windows.Application
 
         services.AddApplicationServices();
         services.AddInfrastructure(dbPath);
+        services.AddSingleton<INotifier, WindowsToastNotifier>();
         services.AddTransient<MainWindow>();
     }
 }

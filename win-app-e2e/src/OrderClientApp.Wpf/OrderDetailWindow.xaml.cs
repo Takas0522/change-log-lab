@@ -9,6 +9,7 @@ using System.Collections.Specialized;
 using OrderClientApp.Application.Abstractions.Orders;
 using OrderClientApp.Domain.Auth;
 using OrderClientApp.Domain.Orders;
+using MessageBox = System.Windows.MessageBox;
 
 namespace OrderClientApp.Wpf;
 

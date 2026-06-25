@@ -44,7 +44,7 @@
                     <Button x:Name="SupplierMasterButton" Content="仕入先マスタ" Width="120" Margin="0,0,8,8" IsEnabled="True" Click="SupplierMasterButton_Click" />
                     <Button x:Name="AnalyticsButton" Content="分析" Width="120" Margin="0,0,8,8" IsEnabled="True" Click="AnalyticsButton_Click" />
                     <Button x:Name="ApproverButton" Content="承認" Width="120" Margin="0,0,8,8" Visibility="Collapsed" Click="ApproverButton_Click" />
-                    <Button x:Name="AdminButton" Content="予算設定" Width="120" Margin="0,0,8,8" Visibility="Collapsed" Click="AdminButton_Click" />
+                    <Button x:Name="AdminButton" Content="設定" Width="120" Margin="0,0,8,8" Visibility="Collapsed" Click="AdminButton_Click" />
                 </WrapPanel>
             </StackPanel>
         </Grid>

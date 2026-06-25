@@ -1,4 +1,5 @@
 using OrderClientApp.Application.Abstractions.Products;
+using OrderClientApp.Application.Abstractions.Operations;
 using OrderClientApp.Application.Abstractions.Suppliers;
 using OrderClientApp.Domain.Suppliers;
 
@@ -8,15 +9,18 @@ public sealed class SupplierService : ISupplierService
 {
     private readonly ISupplierRepository _supplierRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IOperationLogService _operationLogService;
     private readonly TimeProvider _timeProvider;
 
     public SupplierService(
         ISupplierRepository supplierRepository,
         IProductRepository productRepository,
+        IOperationLogService operationLogService,
         TimeProvider? timeProvider = null)
     {
         _supplierRepository = supplierRepository;
         _productRepository = productRepository;
+        _operationLogService = operationLogService;
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
@@ -37,6 +41,7 @@ public sealed class SupplierService : ISupplierService
             nowUtc);
 
         await _supplierRepository.AddAsync(supplier, cancellationToken);
+        await _operationLogService.LogAsync("Supplier", "Create", null, $"仕入先を作成しました: {supplier.CompanyName}", cancellationToken);
         return ToDto(supplier);
     }
 
@@ -56,17 +61,19 @@ public sealed class SupplierService : ISupplierService
             _timeProvider.GetUtcNow());
 
         await _supplierRepository.UpdateAsync(supplier, cancellationToken);
+        await _operationLogService.LogAsync("Supplier", "Update", null, $"仕入先を更新しました: {supplier.CompanyName}", cancellationToken);
         return ToDto(supplier);
     }
 
-    public Task DeleteAsync(Guid supplierId, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(Guid supplierId, CancellationToken cancellationToken = default)
     {
         if (supplierId == Guid.Empty)
         {
             throw new ArgumentException("Supplier id is required.", nameof(supplierId));
         }
 
-        return _supplierRepository.DeleteAsync(supplierId, cancellationToken);
+        await _supplierRepository.DeleteAsync(supplierId, cancellationToken);
+        await _operationLogService.LogAsync("Supplier", "Delete", null, $"仕入先を削除しました: {supplierId}", cancellationToken);
     }
 
     public async Task<SupplierDto?> GetByIdAsync(Guid supplierId, CancellationToken cancellationToken = default)

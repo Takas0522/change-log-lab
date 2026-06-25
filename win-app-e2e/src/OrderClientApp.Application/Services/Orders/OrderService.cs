@@ -1,5 +1,7 @@
 using OrderClientApp.Application.Abstractions.Auth;
+using OrderClientApp.Application.Abstractions.Notifications;
 using OrderClientApp.Application.Abstractions.Orders;
+using OrderClientApp.Application.Abstractions.Operations;
 using OrderClientApp.Domain.Auth;
 using OrderClientApp.Domain.Orders;
 
@@ -15,6 +17,8 @@ public sealed class OrderService : IOrderService
     private readonly IBudgetSettingsRepository _budgetSettingsRepository;
     private readonly IInventoryRepository _inventoryRepository;
     private readonly IAuthorizationService _authorizationService;
+    private readonly IOperationLogService _operationLogService;
+    private readonly INotifier _notifier;
     private readonly TimeProvider _timeProvider;
 
     public OrderService(
@@ -24,6 +28,8 @@ public sealed class OrderService : IOrderService
         IBudgetSettingsRepository budgetSettingsRepository,
         IInventoryRepository inventoryRepository,
         IAuthorizationService authorizationService,
+        IOperationLogService operationLogService,
+        INotifier notifier,
         TimeProvider? timeProvider = null)
     {
         _orderRepository = orderRepository;
@@ -32,6 +38,8 @@ public sealed class OrderService : IOrderService
         _budgetSettingsRepository = budgetSettingsRepository;
         _inventoryRepository = inventoryRepository;
         _authorizationService = authorizationService;
+        _operationLogService = operationLogService;
+        _notifier = notifier;
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
@@ -68,6 +76,11 @@ public sealed class OrderService : IOrderService
             updatedAtUtc: nowUtc);
 
         await _orderRepository.AddAsync(order, cancellationToken);
+        await _operationLogService.LogAsync("Order", "Create", request.CreatedByUserId.ToString(), $"発注を作成しました: {order.OrderNumber.Value}", cancellationToken);
+        if (status == OrderStatus.PendingApproval)
+        {
+            await _notifier.NotifyAsync(new AppNotification("承認依頼", $"発注 {order.OrderNumber.Value} の承認が必要です。"), cancellationToken);
+        }
         return await ToDtoAsync(order, budget, cancellationToken);
     }
 
@@ -122,6 +135,11 @@ public sealed class OrderService : IOrderService
 
         order.TransitionTo(desiredStatus, nowUtc);
         await _orderRepository.UpdateAsync(order, cancellationToken);
+        await _operationLogService.LogAsync("Order", "Update", null, $"発注を更新しました: {order.OrderNumber.Value}", cancellationToken);
+        if (order.Status == OrderStatus.PendingApproval)
+        {
+            await _notifier.NotifyAsync(new AppNotification("承認依頼", $"発注 {order.OrderNumber.Value} の承認が必要です。"), cancellationToken);
+        }
         return await ToDtoAsync(order, budget, cancellationToken);
     }
 
@@ -142,6 +160,8 @@ public sealed class OrderService : IOrderService
         order.TransitionTo(OrderStatus.Approved, now);
         order.TransitionTo(OrderStatus.Processing, now);
         await _orderRepository.UpdateAsync(order, cancellationToken);
+        await _operationLogService.LogAsync("Order", "Approve", actor.Username, $"発注を承認しました: {order.OrderNumber.Value}", cancellationToken);
+        await _notifier.NotifyAsync(new AppNotification("承認完了", $"発注 {order.OrderNumber.Value} の承認が完了しました。"), cancellationToken);
         return await ToDtoAsync(order, null, cancellationToken);
     }
 
@@ -152,6 +172,7 @@ public sealed class OrderService : IOrderService
             ?? throw new InvalidOperationException("Order was not found.");
         order.Reject(reason, _timeProvider.GetUtcNow());
         await _orderRepository.UpdateAsync(order, cancellationToken);
+        await _operationLogService.LogAsync("Order", "Reject", actor.Username, $"発注を却下しました: {order.OrderNumber.Value}", cancellationToken);
         return await ToDtoAsync(order, null, cancellationToken);
     }
 
@@ -171,6 +192,7 @@ public sealed class OrderService : IOrderService
         }
 
         await _orderRepository.UpdateAsync(order, cancellationToken);
+        await _operationLogService.LogAsync("Order", "Receive", null, $"発注の入荷を記録しました: {order.OrderNumber.Value}", cancellationToken);
         return await ToDtoAsync(order, null, cancellationToken);
     }
 
@@ -182,6 +204,7 @@ public sealed class OrderService : IOrderService
         }
 
         await _orderRepository.SoftDeleteAsync(orderId, _timeProvider.GetUtcNow(), cancellationToken);
+        await _operationLogService.LogAsync("Order", "Delete", null, $"発注を削除しました: {orderId}", cancellationToken);
     }
 
     public async Task<OrderDto?> GetByIdAsync(Guid orderId, bool includeDeleted = false, CancellationToken cancellationToken = default)
@@ -235,13 +258,21 @@ public sealed class OrderService : IOrderService
         return template is null ? null : ToDto(template);
     }
 
-    public Task<IReadOnlyCollection<InventoryAlertDto>> GetInventoryAlertsAsync(CancellationToken cancellationToken = default)
-        => _inventoryRepository.ListAlertsAsync(cancellationToken);
+    public async Task<IReadOnlyCollection<InventoryAlertDto>> GetInventoryAlertsAsync(CancellationToken cancellationToken = default)
+    {
+        var alerts = await _inventoryRepository.ListAlertsAsync(cancellationToken);
+        if (alerts.Count > 0)
+        {
+            await _notifier.NotifyAsync(new AppNotification("在庫アラート", $"{alerts.Count} 件の発注推奨商品があります。"), cancellationToken);
+        }
+
+        return alerts;
+    }
 
     public Task<BudgetSettingsDto> GetBudgetSettingsAsync(CancellationToken cancellationToken = default)
         => _budgetSettingsRepository.GetAsync(cancellationToken);
 
-    public Task<BudgetSettingsDto> SaveBudgetSettingsAsync(decimal approvalThreshold, decimal? monthlyLimit, decimal? yearlyLimit, CancellationToken cancellationToken = default)
+    public async Task<BudgetSettingsDto> SaveBudgetSettingsAsync(decimal approvalThreshold, decimal? monthlyLimit, decimal? yearlyLimit, CancellationToken cancellationToken = default)
     {
         if (approvalThreshold < 0)
         {
@@ -253,12 +284,14 @@ public sealed class OrderService : IOrderService
             throw new ArgumentOutOfRangeException(nameof(monthlyLimit), "Budget cannot be negative.");
         }
 
-        return _budgetSettingsRepository.UpsertAsync(
+        var result = await _budgetSettingsRepository.UpsertAsync(
             approvalThreshold,
             monthlyLimit,
             yearlyLimit,
             _timeProvider.GetUtcNow(),
             cancellationToken);
+        await _operationLogService.LogAsync("Settings", "BudgetUpdate", null, $"予算設定を更新しました: Threshold={approvalThreshold}", cancellationToken);
+        return result;
     }
 
     private void EnsureApprover(AuthenticatedUser actor)

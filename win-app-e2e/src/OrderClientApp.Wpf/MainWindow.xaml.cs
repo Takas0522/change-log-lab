@@ -3,6 +3,9 @@ using OrderClientApp.Application.Abstractions.Analytics;
 using OrderClientApp.Application.Abstractions.Orders;
 using OrderClientApp.Application.Abstractions.Products;
 using OrderClientApp.Application.Abstractions.Auth;
+using OrderClientApp.Application.Abstractions.Backup;
+using OrderClientApp.Application.Abstractions.Operations;
+using OrderClientApp.Application.Abstractions.Settings;
 using OrderClientApp.Application.Abstractions.Suppliers;
 using OrderClientApp.Domain.Auth;
 
@@ -16,6 +19,9 @@ public partial class MainWindow : Window
     private readonly IProductService _productService;
     private readonly ISupplierService _supplierService;
     private readonly IAnalyticsService _analyticsService;
+    private readonly IAppSettingsService _appSettingsService;
+    private readonly IBackupService _backupService;
+    private readonly IOperationLogService _operationLogService;
     private AuthenticatedUser? _authenticatedUser;
 
     public MainWindow(
@@ -24,7 +30,10 @@ public partial class MainWindow : Window
         IOrderService orderService,
         IProductService productService,
         ISupplierService supplierService,
-        IAnalyticsService analyticsService)
+        IAnalyticsService analyticsService,
+        IAppSettingsService appSettingsService,
+        IBackupService backupService,
+        IOperationLogService operationLogService)
     {
         _authenticationService = authenticationService;
         _authorizationService = authorizationService;
@@ -32,6 +41,9 @@ public partial class MainWindow : Window
         _productService = productService;
         _supplierService = supplierService;
         _analyticsService = analyticsService;
+        _appSettingsService = appSettingsService;
+        _backupService = backupService;
+        _operationLogService = operationLogService;
         InitializeComponent();
     }
 
@@ -74,9 +86,10 @@ public partial class MainWindow : Window
         LoginView.Visibility = Visibility.Collapsed;
         DashboardView.Visibility = Visibility.Visible;
 
-        HeaderTextBlock.Text = $"ダッシュボード - {_authenticatedUser.Username} ({GetRoleLabel(_authenticatedUser.Role)})";
+        var appSettings = await _appSettingsService.GetAsync();
+        HeaderTextBlock.Text = $"{appSettings.CompanyName} - {_authenticatedUser.Username} ({GetRoleLabel(_authenticatedUser.Role)})";
         var alerts = await _orderService.GetInventoryAlertsAsync();
-        DashboardInfoTextBlock.Text = $"ログインに成功しました。発注管理ボタンから一覧・詳細画面へ遷移できます。 在庫アラート: {alerts.Count} 件";
+        DashboardInfoTextBlock.Text = $"ログインに成功しました。発注管理ボタンから一覧・詳細画面へ遷移できます。 在庫アラート: {alerts.Count} 件\n住所: {appSettings.CompanyAddress}";
 
         ApproverButton.Visibility = _authorizationService.CanAccess(_authenticatedUser, UserRole.Approver)
             ? Visibility.Visible
@@ -128,7 +141,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var window = new BudgetSettingsWindow(_orderService)
+        var window = new SettingsWindow(_appSettingsService, _backupService, _operationLogService, _authenticatedUser.Username)
         {
             Owner = this
         };

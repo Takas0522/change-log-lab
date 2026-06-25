@@ -1,0 +1,36 @@
+<Window x:Class="OrderClientApp.Wpf.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="設定" Height="420" Width="620"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="会社名" />
+            <TextBox x:Name="CompanyNameTextBox" Margin="0,4,0,12" />
+            <TextBlock Text="会社住所" />
+            <TextBox x:Name="CompanyAddressTextBox" Margin="0,4,0,12" />
+            <TextBlock Text="承認閾値" />
+            <TextBox x:Name="ApprovalThresholdTextBox" Margin="0,4,0,12" />
+            <TextBlock Text="テーマ" />
+            <ComboBox x:Name="ThemeComboBox" Margin="0,4,0,12">
+                <ComboBoxItem Content="Light" />
+                <ComboBoxItem Content="Dark" />
+            </ComboBox>
+
+            <WrapPanel Margin="0,8,0,0">
+                <Button Content="ログ参照" Width="120" Margin="0,0,8,0" Click="ViewLogsButton_Click" />
+                <Button Content="DBバックアップ" Width="140" Margin="0,0,8,0" Click="BackupButton_Click" />
+            </WrapPanel>
+        </StackPanel>
+
+        <DockPanel Grid.Row="1" LastChildFill="False">
+            <TextBlock x:Name="InfoTextBlock" VerticalAlignment="Center" />
+            <Button Content="保存" Width="120" DockPanel.Dock="Right" Click="SaveButton_Click" />
+        </DockPanel>
+    </Grid>
+</Window>

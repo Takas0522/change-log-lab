@@ -3,6 +3,8 @@ using System.IO;
 using System.Windows;
 using Microsoft.Win32;
 using OrderClientApp.Application.Abstractions.Products;
+using MessageBox = System.Windows.MessageBox;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace OrderClientApp.Wpf;
 
