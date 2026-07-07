@@ -15,7 +15,7 @@
                     <TextBlock Text="パスワード" />
                     <PasswordBox x:Name="PasswordBox" Margin="0,4,0,12" />
                     <TextBlock x:Name="ErrorTextBlock" Foreground="#B91C1C" Margin="0,0,0,12" TextWrapping="Wrap" Visibility="Collapsed" />
-                    <Button Content="ログイン" Height="36" Click="LoginButton_Click" />
+                    <Button AutomationProperties.AutomationId="LoginButton" Content="ログイン" Height="36" IsDefault="True" Click="LoginButton_Click" />
                 </StackPanel>
             </Border>
         </Grid>
@@ -29,7 +29,7 @@
 
             <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,20">
                 <TextBlock x:Name="HeaderTextBlock" FontSize="20" FontWeight="SemiBold" />
-                <Button Content="ログアウト" Width="100" DockPanel.Dock="Right" Click="LogoutButton_Click" />
+                <Button AutomationProperties.AutomationId="LogoutButton" Content="ログアウト" Width="100" DockPanel.Dock="Right" Click="LogoutButton_Click" />
             </DockPanel>
 
             <Border Grid.Row="1" Padding="12" Background="#F3F4F6" CornerRadius="8" Margin="0,0,0,12">
@@ -39,7 +39,7 @@
             <StackPanel Grid.Row="2">
                 <TextBlock Text="ナビゲーション（権限に応じて表示）" FontWeight="SemiBold" Margin="0,0,0,8" />
                 <WrapPanel>
-                    <Button x:Name="OrderManagementButton" Content="発注管理" Width="120" Margin="0,0,8,8" IsEnabled="True" Click="OrderManagementButton_Click" />
+                    <Button x:Name="OrderManagementButton" AutomationProperties.AutomationId="OrderManagementButton" Content="発注管理" Width="120" Margin="0,0,8,8" IsEnabled="True" Click="OrderManagementButton_Click" />
                     <Button x:Name="ProductMasterButton" Content="商品マスタ" Width="120" Margin="0,0,8,8" IsEnabled="True" Click="ProductMasterButton_Click" />
                     <Button x:Name="SupplierMasterButton" Content="仕入先マスタ" Width="120" Margin="0,0,8,8" IsEnabled="True" Click="SupplierMasterButton_Click" />
                     <Button x:Name="AnalyticsButton" Content="分析" Width="120" Margin="0,0,8,8" IsEnabled="True" Click="AnalyticsButton_Click" />

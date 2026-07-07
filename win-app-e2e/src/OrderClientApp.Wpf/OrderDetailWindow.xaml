@@ -25,7 +25,7 @@
             </WrapPanel>
             <WrapPanel Margin="0,0,0,8">
                 <TextBlock Text="仕入先" VerticalAlignment="Center" />
-                <TextBox x:Name="SupplierTextBox" Width="260" Margin="8,0,16,0" />
+                <TextBox x:Name="SupplierTextBox" AutomationProperties.AutomationId="SupplierTextBox" Width="260" Margin="8,0,16,0" />
                 <TextBlock Text="税率" VerticalAlignment="Center" />
                 <TextBox x:Name="TaxRateTextBox" Width="80" Margin="8,0,16,0" Text="0.1" />
             </WrapPanel>
@@ -41,7 +41,7 @@
             </WrapPanel>
             <WrapPanel>
                 <TextBlock Text="備考" VerticalAlignment="Top" />
-                <TextBox x:Name="NoteTextBox" Width="640" Height="50" Margin="8,0,0,0" TextWrapping="Wrap" AcceptsReturn="True" />
+                <TextBox x:Name="NoteTextBox" AutomationProperties.AutomationId="NoteTextBox" Width="640" Height="50" Margin="8,0,0,0" TextWrapping="Wrap" AcceptsReturn="True" />
             </WrapPanel>
         </StackPanel>
 
@@ -54,12 +54,13 @@
             </Grid.RowDefinitions>
 
             <WrapPanel Grid.Row="0" Margin="0,0,0,8">
-                <Button Content="行追加" Width="90" Margin="0,0,8,0" Click="AddLineButton_Click" />
-                <Button Content="行削除" Width="90" Click="RemoveLineButton_Click" />
+                <Button AutomationProperties.AutomationId="AddOrderLineButton" Content="行追加" Width="90" Margin="0,0,8,0" Click="AddLineButton_Click" />
+                <Button AutomationProperties.AutomationId="RemoveOrderLineButton" Content="行削除" Width="90" Click="RemoveLineButton_Click" />
             </WrapPanel>
 
             <DataGrid Grid.Row="1"
                       x:Name="LineItemsDataGrid"
+                      AutomationProperties.AutomationId="LineItemsDataGrid"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False">
                 <DataGrid.Columns>
@@ -74,9 +75,9 @@
             <WrapPanel Grid.Row="2" Margin="0,8,0,8">
                 <TextBlock Text="テンプレート名" VerticalAlignment="Center" />
                 <TextBox x:Name="TemplateNameTextBox" Width="180" Margin="8,0,8,0" />
-                <Button Content="テンプレート保存" Width="130" Margin="0,0,8,0" Click="SaveTemplateButton_Click" />
+                <Button AutomationProperties.AutomationId="SaveOrderTemplateButton" Content="テンプレート保存" Width="130" Margin="0,0,8,0" Click="SaveTemplateButton_Click" />
                 <ComboBox x:Name="TemplateComboBox" Width="260" DisplayMemberPath="TemplateName" SelectedValuePath="Id" />
-                <Button Content="テンプレート読込" Width="120" Margin="8,0,0,0" Click="LoadTemplateButton_Click" />
+                <Button AutomationProperties.AutomationId="LoadOrderTemplateButton" Content="テンプレート読込" Width="120" Margin="8,0,0,0" Click="LoadTemplateButton_Click" />
             </WrapPanel>
 
             <WrapPanel Grid.Row="3">
@@ -86,8 +87,8 @@
         </Grid>
 
         <DockPanel Grid.Row="2" LastChildFill="False">
-            <Button DockPanel.Dock="Right" Content="入荷確認(全量)" Width="130" Margin="0,0,8,0" Click="ReceiveAllButton_Click" />
-            <Button DockPanel.Dock="Right" Content="保存 (Ctrl+S)" Width="130" Click="SaveButton_Click" />
+            <Button AutomationProperties.AutomationId="ReceiveAllOrderButton" DockPanel.Dock="Right" Content="入荷確認(全量)" Width="130" Margin="0,0,8,0" Click="ReceiveAllButton_Click" />
+            <Button AutomationProperties.AutomationId="SaveOrderButton" DockPanel.Dock="Right" Content="保存 (Ctrl+S)" Width="130" Click="SaveButton_Click" />
         </DockPanel>
     </Grid>
 </Window>

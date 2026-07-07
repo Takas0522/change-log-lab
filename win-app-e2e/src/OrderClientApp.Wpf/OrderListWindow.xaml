@@ -26,20 +26,21 @@
                     <ComboBoxItem Content="50" />
                     <ComboBoxItem Content="100" />
                 </ComboBox>
-                <Button Content="検索" Width="90" Click="SearchButton_Click" />
+                <Button AutomationProperties.AutomationId="OrderSearchButton" Content="検索" Width="90" Click="SearchButton_Click" />
             </WrapPanel>
 
             <WrapPanel>
-                <Button Content="新規作成 (Ctrl+N)" Width="150" Margin="0,0,8,0" Click="CreateButton_Click" />
-                <Button Content="編集" Width="90" Margin="0,0,8,0" Click="EditButton_Click" />
-                <Button Content="入荷確認" Width="100" Margin="0,0,8,0" Click="ReceiveButton_Click" />
-                <Button Content="削除(論理)" Width="100" Margin="0,0,8,0" Click="DeleteButton_Click" />
-                <Button Content="テンプレート保存" Width="130" Click="SaveTemplateButton_Click" />
+                <Button AutomationProperties.AutomationId="CreateOrderButton" Content="新規作成 (Ctrl+N)" Width="150" Margin="0,0,8,0" Click="CreateButton_Click" />
+                <Button AutomationProperties.AutomationId="EditOrderButton" Content="編集" Width="90" Margin="0,0,8,0" Click="EditButton_Click" />
+                <Button AutomationProperties.AutomationId="ReceiveOrderButton" Content="入荷確認" Width="100" Margin="0,0,8,0" Click="ReceiveButton_Click" />
+                <Button AutomationProperties.AutomationId="DeleteOrderButton" Content="削除(論理)" Width="100" Margin="0,0,8,0" Click="DeleteButton_Click" />
+                <Button AutomationProperties.AutomationId="SaveOrderTemplateFromListButton" Content="テンプレート保存" Width="130" Click="SaveTemplateButton_Click" />
             </WrapPanel>
         </StackPanel>
 
         <DataGrid Grid.Row="1"
                   x:Name="OrdersDataGrid"
+                  AutomationProperties.AutomationId="OrdersDataGrid"
                   Margin="0,12,0,12"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
@@ -55,7 +56,7 @@
         </DataGrid>
 
         <DockPanel Grid.Row="2" LastChildFill="False">
-            <TextBlock x:Name="PagerInfoTextBlock" VerticalAlignment="Center" />
+            <TextBlock x:Name="PagerInfoTextBlock" AutomationProperties.AutomationId="PagerInfoTextBlock" VerticalAlignment="Center" />
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                 <Button x:Name="PreviousPageButton" Content="前へ" Width="80" Margin="0,0,8,0" Click="PreviousPageButton_Click" />
                 <Button x:Name="NextPageButton" Content="次へ" Width="80" Click="NextPageButton_Click" />

@@ -7,5 +7,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/OrderClientApp.Domain.Tests/OrderClientApp.Domain.Tests.csproj" />
+    <Project Path="tests/OrderClientApp.FlaUIE2E/OrderClientApp.FlaUIE2E.csproj" />
+    <Project Path="tests/OrderClientApp.NovaWindowsE2E/OrderClientApp.NovaWindowsE2E.csproj" />
   </Folder>
 </Solution>

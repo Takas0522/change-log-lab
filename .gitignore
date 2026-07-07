@@ -4,3 +4,12 @@
 .github/copilot/hooks/.env
 .github/copilot/hooks/*.log
 .copilot-hooks/
+
+# Visual Studio / .NET build artifacts
+**/.vs/
+**/bin/
+**/obj/
+**/TestResults/
+
+# E2E run outputs
+win-app-e2e/artifacts/e2e/

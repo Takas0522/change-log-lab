@@ -139,16 +139,16 @@ public partial class OrderDetailWindow : Window
                 await _orderService.UpdateAsync(new UpdateOrderRequest(
                     _orderId.Value,
                     SupplierTextBox.Text,
-                    new DateTimeOffset(orderedAt, TimeSpan.Zero),
+                    ToUtcDateOffset(orderedAt),
                     ExpectedReceivingDatePicker.SelectedDate.HasValue
-                        ? new DateTimeOffset(ExpectedReceivingDatePicker.SelectedDate.Value, TimeSpan.Zero)
+                        ? ToUtcDateOffset(ExpectedReceivingDatePicker.SelectedDate.Value)
                         : null,
                     (OrderStatus)(StatusComboBox.SelectedValue ?? OrderStatus.Unprocessed),
                     NoteTextBox.Text,
                     DeliveryNoteNumberTextBox.Text,
-                    deliveryNoteDate.HasValue ? new DateTimeOffset(deliveryNoteDate.Value, TimeSpan.Zero) : null,
+                    deliveryNoteDate.HasValue ? ToUtcDateOffset(deliveryNoteDate.Value) : null,
                     InvoiceNumberTextBox.Text,
-                    invoiceDate.HasValue ? new DateTimeOffset(invoiceDate.Value, TimeSpan.Zero) : null,
+                    invoiceDate.HasValue ? ToUtcDateOffset(invoiceDate.Value) : null,
                     taxRate,
                     lineItems));
             }
@@ -157,15 +157,15 @@ public partial class OrderDetailWindow : Window
                 var created = await _orderService.CreateBulkAsync(new CreateBulkOrderRequest(
                     _authenticatedUser.UserId,
                     SupplierTextBox.Text,
-                    new DateTimeOffset(orderedAt, TimeSpan.Zero),
+                    ToUtcDateOffset(orderedAt),
                     ExpectedReceivingDatePicker.SelectedDate.HasValue
-                        ? new DateTimeOffset(ExpectedReceivingDatePicker.SelectedDate.Value, TimeSpan.Zero)
+                        ? ToUtcDateOffset(ExpectedReceivingDatePicker.SelectedDate.Value)
                         : null,
                     NoteTextBox.Text,
                     DeliveryNoteNumberTextBox.Text,
-                    deliveryNoteDate.HasValue ? new DateTimeOffset(deliveryNoteDate.Value, TimeSpan.Zero) : null,
+                    deliveryNoteDate.HasValue ? ToUtcDateOffset(deliveryNoteDate.Value) : null,
                     InvoiceNumberTextBox.Text,
-                    invoiceDate.HasValue ? new DateTimeOffset(invoiceDate.Value, TimeSpan.Zero) : null,
+                    invoiceDate.HasValue ? ToUtcDateOffset(invoiceDate.Value) : null,
                     taxRate,
                     lineItems));
                 OrderNumberTextBox.Text = created.OrderNumber;
@@ -175,15 +175,15 @@ public partial class OrderDetailWindow : Window
                 var created = await _orderService.CreateAsync(new CreateOrderRequest(
                     _authenticatedUser.UserId,
                     SupplierTextBox.Text,
-                    new DateTimeOffset(orderedAt, TimeSpan.Zero),
+                    ToUtcDateOffset(orderedAt),
                     ExpectedReceivingDatePicker.SelectedDate.HasValue
-                        ? new DateTimeOffset(ExpectedReceivingDatePicker.SelectedDate.Value, TimeSpan.Zero)
+                        ? ToUtcDateOffset(ExpectedReceivingDatePicker.SelectedDate.Value)
                         : null,
                     NoteTextBox.Text,
                     DeliveryNoteNumberTextBox.Text,
-                    deliveryNoteDate.HasValue ? new DateTimeOffset(deliveryNoteDate.Value, TimeSpan.Zero) : null,
+                    deliveryNoteDate.HasValue ? ToUtcDateOffset(deliveryNoteDate.Value) : null,
                     InvoiceNumberTextBox.Text,
-                    invoiceDate.HasValue ? new DateTimeOffset(invoiceDate.Value, TimeSpan.Zero) : null,
+                    invoiceDate.HasValue ? ToUtcDateOffset(invoiceDate.Value) : null,
                     taxRate,
                     lineItems));
                 OrderNumberTextBox.Text = created.OrderNumber;
@@ -197,6 +197,9 @@ public partial class OrderDetailWindow : Window
             MessageBox.Show($"保存に失敗しました。\n{ex.Message}", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
+
+    private static DateTimeOffset ToUtcDateOffset(DateTime date)
+        => new(DateTime.SpecifyKind(date.Date, DateTimeKind.Unspecified), TimeSpan.Zero);
 
     private void AddLineButton_Click(object sender, RoutedEventArgs e)
     {
